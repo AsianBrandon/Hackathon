@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>냉동공조 — 기계공학 학습 포털</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+      background: #0f1117;
+      color: #e8eaf0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      padding: 20px 40px;
+      border-bottom: 1px solid #1a2133;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    nav a {
+      color: #6b7280;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: #e8eaf0; }
+    nav .sep { color: #374151; }
+    nav .current { color: #60a5fa; font-weight: 600; }
+
+    .hero {
+      padding: 60px 40px 48px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .hero .badge {
+      display: inline-block;
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(26px, 4vw, 40px);
+      font-weight: 800;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #e8eaf0 40%, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      color: #8892a4;
+      font-size: 15px;
+      line-height: 1.75;
+      max-width: 560px;
+    }
+
+    .coming-soon {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 40px 80px;
+      text-align: center;
+    }
+
+    .coming-soon .icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+
+    .coming-soon .icon svg {
+      width: 38px;
+      height: 38px;
+      color: #60a5fa;
+    }
+
+    .coming-soon h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #d1d5db;
+    }
+
+    .coming-soon p {
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.7;
+      max-width: 360px;
+    }
+
+    .topic-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 36px;
+      justify-content: center;
+      max-width: 600px;
+    }
+
+    .topic-chip {
+      background: #181d27;
+      border: 1px solid #252d3d;
+      color: #9ca3af;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: #374151;
+      font-size: 13px;
+      border-top: 1px solid #1a2133;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="../index.html">홈</a>
+    <span class="sep">›</span>
+    <span class="current">냉동공조</span>
+  </nav>
+
+  <div class="hero">
+    <div class="badge">Refrigeration &amp; Air Conditioning</div>
+    <h1>냉동공조</h1>
+    <p>냉동 사이클의 원리부터 공조 시스템 설계까지, 핵심 개념과 예제 풀이를 단계별로 학습합니다. 수치를 직접 바꿔보며 결과가 어떻게 달라지는지 시각화로 확인하세요.</p>
+  </div>
+
+  <div class="coming-soon">
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="2" x2="12" y2="22"/>
+        <path d="M17 7l-5 5-5-5"/>
+        <path d="M17 17l-5-5-5 5"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+      </svg>
+    </div>
+    <h2>콘텐츠 준비 중입니다</h2>
+    <p>어떤 예제 문제와 개념을 다룰지 알려주시면 바로 추가하겠습니다.</p>
+
+    <div class="topic-preview">
+      <span class="topic-chip">냉동 사이클 기초</span>
+      <span class="topic-chip">증발기 · 응축기</span>
+      <span class="topic-chip">COP 계산</span>
+      <span class="topic-chip">p-h 선도</span>
+      <span class="topic-chip">냉매 종류 및 특성</span>
+      <span class="topic-chip">팽창밸브</span>
+      <span class="topic-chip">냉동 부하 계산</span>
+      <span class="topic-chip">공조 시스템 설계</span>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 기계공학 학습 포털
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>기계설계기초 — 기계공학 학습 포털</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+      background: #0f1117;
+      color: #e8eaf0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      padding: 20px 40px;
+      border-bottom: 1px solid #1a2133;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    nav a {
+      color: #6b7280;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: #e8eaf0; }
+    nav .sep { color: #374151; }
+    nav .current { color: #fb923c; font-weight: 600; }
+
+    .hero {
+      padding: 60px 40px 48px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .hero .badge {
+      display: inline-block;
+      background: rgba(249, 115, 22, 0.12);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      color: #fb923c;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(26px, 4vw, 40px);
+      font-weight: 800;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #e8eaf0 40%, #fb923c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      color: #8892a4;
+      font-size: 15px;
+      line-height: 1.75;
+      max-width: 560px;
+    }
+
+    .coming-soon {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 40px 80px;
+      text-align: center;
+    }
+
+    .coming-soon .icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(249, 115, 22, 0.1);
+      border: 1px solid rgba(249, 115, 22, 0.2);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+
+    .coming-soon .icon svg {
+      width: 38px;
+      height: 38px;
+      color: #fb923c;
+    }
+
+    .coming-soon h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #d1d5db;
+    }
+
+    .coming-soon p {
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.7;
+      max-width: 360px;
+    }
+
+    .topic-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 36px;
+      justify-content: center;
+      max-width: 600px;
+    }
+
+    .topic-chip {
+      background: #181d27;
+      border: 1px solid #252d3d;
+      color: #9ca3af;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: #374151;
+      font-size: 13px;
+      border-top: 1px solid #1a2133;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="../index.html">홈</a>
+    <span class="sep">›</span>
+    <span class="current">기계설계기초</span>
+  </nav>
+
+  <div class="hero">
+    <div class="badge">Fundamentals of Machine Design</div>
+    <h1>기계설계기초</h1>
+    <p>응력·변형률 기초부터 체결 요소, 축, 베어링 설계까지 핵심 이론과 예제 풀이를 단계별로 학습합니다. 설계 변수를 바꿔가며 결과가 어떻게 달라지는지 확인하세요.</p>
+  </div>
+
+  <div class="coming-soon">
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.07 4.93l-1.41 1.41M5.34 17.66l-1.41 1.41M20 12h-2M6 12H4M19.07 19.07l-1.41-1.41M5.34 6.34L3.93 4.93M12 20v-2M12 6V4M16.66 17.66l1.41 1.41M6.34 6.34L4.93 4.93"/>
+      </svg>
+    </div>
+    <h2>콘텐츠 준비 중입니다</h2>
+    <p>어떤 예제 문제와 개념을 다룰지 알려주시면 바로 추가하겠습니다.</p>
+
+    <div class="topic-preview">
+      <span class="topic-chip">응력 · 변형률</span>
+      <span class="topic-chip">안전계수</span>
+      <span class="topic-chip">피로 설계</span>
+      <span class="topic-chip">볼트 체결</span>
+      <span class="topic-chip">용접 설계</span>
+      <span class="topic-chip">축 설계</span>
+      <span class="topic-chip">베어링 선정</span>
+      <span class="topic-chip">키 · 핀 설계</span>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 기계공학 학습 포털
+  </footer>
+
+</body>
+</html>
