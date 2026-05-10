@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단순지지보 해석기</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#0d1117;
+  color:#c9d1d9;
+  font-family:'Segoe UI', system-ui, sans-serif;
+  display:flex; flex-direction:column; align-items:center;
+  padding:20px 16px; min-height:100vh;
+}
+h1 {
+  color:#58a6ff; font-size:1.35rem; margin-bottom:16px;
+  letter-spacing:-0.02em; font-weight:600;
+}
+#cv {
+  background:#161b22; border:1px solid #30363d; border-radius:12px;
+  cursor:default; max-width:100%; touch-action:none;
+}
+.info {
+  display:flex; gap:10px; flex-wrap:wrap;
+  justify-content:center; margin-top:14px;
+}
+.chip {
+  background:#21262d; border:1px solid #30363d; border-radius:6px;
+  padding:5px 14px; font-size:0.82rem; color:#79c0ff; min-width:100px;
+  text-align:center;
+}
+.hint { margin-top:10px; font-size:0.78rem; color:#6e7681; text-align:center; }
+</style>
+</head>
+<body>
+<h1>단순지지보 — 전단력 · 굽힘모멘트 선도</h1>
+<canvas id="cv"></canvas>
+<div class="info">
+  <div class="chip" id="c-pos">a = —</div>
+  <div class="chip" id="c-P">P = —</div>
+  <div class="chip" id="c-RA">R_A = —</div>
+  <div class="chip" id="c-RB">R_B = —</div>
+  <div class="chip" id="c-Mmax">M_max = —</div>
+</div>
+<div class="hint">● 원형 핸들 드래그 → 좌우: 하중 위치 / 상하: 하중 크기 조절</div>
+
+<script>
+const cv  = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const CW  = 820, CH = 700;
+cv.width  = CW * DPR; cv.height = CH * DPR;
+cv.style.width = CW + 'px'; cv.style.height = CH + 'px';
+ctx.scale(DPR, DPR);
+
+// ── Layout constants ──────────────────────────────────
+const BX0 = 120, BX1 = 700, BL = BX1 - BX0;
+const BY  = 205, BH = 22;
+const TIP_Y = BY - BH / 2;          // arrow tip y (top of beam)
+const Lm    = 10;                    // physical beam length (m)
+const pxPm  = BL / Lm;              // pixels per metre
+
+const SFD_CY = 430, BMD_CY = 610, DH = 75;
+const P_MAX  = 100;                  // max load (kN)
+
+// ── State ─────────────────────────────────────────────
+let loadX = BX0 + BL / 2;           // load x (px, absolute)
+let P     = 55;                      // load magnitude (kN)
+let drag  = false;
+
+// ── Physics helpers ──────────────────────────────────
+function derived() {
+  const a_px = loadX - BX0;
+  const a_m  = a_px / pxPm;
+  const b_m  = Lm - a_m;
+  const RA   = P * b_m / Lm;
+  const RB   = P * a_m / Lm;
+  const Mmax = RA * a_m;
+  return { a_px, a_m, b_m, RA, RB, Mmax };
+}
+
+function V_at(x_abs) {
+  const { a_px, RA, RB } = derived();
+  return (x_abs - BX0) < a_px ? RA : -RB;
+}
+
+function M_at(x_abs) {
+  const { a_px, a_m, RA } = derived();
+  const xi_m = (x_abs - BX0) / pxPm;
+  const ai_m = a_m;
+  if (x_abs - BX0 <= a_px) return RA * xi_m;
+  return RA * xi_m - P * (xi_m - ai_m);
+}
+
+// ── Handle position ──────────────────────────────────
+function arrowLen() { return (P / P_MAX) * 80 + 25; }
+function handleY()  { return TIP_Y - arrowLen(); }
+function isOnHandle(mx, my) {
+  return Math.hypot(mx - loadX, my - handleY()) < 14;
+}
+
+// ── Main draw ────────────────────────────────────────
+function draw() {
+  ctx.clearRect(0, 0, CW, CH);
+  const d = derived();
+  drawGrid();
+  drawBeam();
+  drawSupports();
+  drawVertDashed(d);
+  drawLoadArrow();
+  drawReactions(d);
+  drawSFD(d);
+  drawBMD(d);
+  drawXAxis();
+  updateChips(d);
+}
+
+// ── Grid (light background lines) ────────────────────
+function drawGrid() {
+  ctx.save();
+  ctx.strokeStyle = '#21262d';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const x = BX0 + (i / 4) * BL;
+    ctx.beginPath();
+    ctx.moveTo(x, 50); ctx.lineTo(x, CH - 20);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ── Beam ─────────────────────────────────────────────
+function drawBeam() {
+  const g = ctx.createLinearGradient(0, BY - BH/2, 0, BY + BH/2);
+  g.addColorStop(0,   '#566985');
+  g.addColorStop(0.4, '#7a9cc0');
+  g.addColorStop(1,   '#2d3a4a');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.rect(BX0, BY - BH/2, BL, BH);
+  ctx.fill();
+  ctx.strokeStyle = '#a0bbd0';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Centre line
+  ctx.save();
+  ctx.strokeStyle = '#3a4f60';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath();
+  ctx.moveTo(BX0, BY); ctx.lineTo(BX1, BY);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ── Supports ─────────────────────────────────────────
+function drawSupports() {
+  drawPin(BX0, BY + BH/2);
+  drawRoller(BX1, BY + BH/2);
+}
+
+function drawPin(x, y) {
+  const s = 16;
+  ctx.fillStyle = '#4a5e70'; ctx.strokeStyle = '#90a8c0'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x, y); ctx.lineTo(x - s, y + s); ctx.lineTo(x + s, y + s);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  drawGround(x, y + s);
+  ctx.fillStyle = '#58a6ff'; ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('A', x, y + s + 22);
+}
+
+function drawRoller(x, y) {
+  const s = 16;
+  ctx.fillStyle = '#4a5e70'; ctx.strokeStyle = '#90a8c0'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x, y); ctx.lineTo(x - s, y + s); ctx.lineTo(x + s, y + s);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  [x - 8, x + 8].forEach(cx => {
+    ctx.beginPath(); ctx.arc(cx, y + s + 6, 5, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+  });
+  drawGround(x, y + s + 12);
+  ctx.fillStyle = '#58a6ff'; ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('B', x, y + s + 28);
+}
+
+function drawGround(x, y) {
+  ctx.strokeStyle = '#3d5060'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x - 22, y); ctx.lineTo(x + 22, y); ctx.stroke();
+  for (let i = -3; i <= 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x + i * 7, y);
+    ctx.lineTo(x + i * 7 - 5, y + 7);
+    ctx.stroke();
+  }
+}
+
+// ── Vertical dashed line at load ─────────────────────
+function drawVertDashed({ a_px }) {
+  const lx = BX0 + a_px;
+  ctx.save();
+  ctx.strokeStyle = '#fc816150';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([5, 4]);
+  ctx.beginPath();
+  ctx.moveTo(lx, handleY() + 10);
+  ctx.lineTo(lx, BMD_CY + DH + 5);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ── Load arrow ────────────────────────────────────────
+function drawLoadArrow() {
+  const hy   = handleY();
+  const alen = arrowLen();
+
+  // Dimension labels (a, b)
+  const { a_m, b_m } = derived();
+  ctx.fillStyle = '#8b949e'; ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'center';
+  if (a_m > 0.3) ctx.fillText(`a = ${a_m.toFixed(2)} m`, BX0 + (a_m / 2) * pxPm, TIP_Y - 6);
+  if (b_m > 0.3) ctx.fillText(`b = ${b_m.toFixed(2)} m`, loadX + (b_m / 2) * pxPm, TIP_Y - 6);
+
+  // Stem
+  ctx.strokeStyle = '#fc8181'; ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(loadX, hy); ctx.lineTo(loadX, TIP_Y - 16);
+  ctx.stroke();
+
+  // Arrowhead
+  ctx.fillStyle = '#fc8181';
+  ctx.beginPath();
+  ctx.moveTo(loadX, TIP_Y);
+  ctx.lineTo(loadX - 9, TIP_Y - 18);
+  ctx.lineTo(loadX + 9, TIP_Y - 18);
+  ctx.closePath(); ctx.fill();
+
+  // Label
+  ctx.fillStyle = '#fca5a5'; ctx.font = 'bold 13px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText(`P = ${P.toFixed(0)} kN`, loadX, hy - 14);
+
+  // Handle circle
+  ctx.beginPath(); ctx.arc(loadX, hy, 9, 0, Math.PI * 2);
+  ctx.fillStyle = '#fc8181'; ctx.fill();
+  ctx.strokeStyle = '#ffffff88'; ctx.lineWidth = 2; ctx.stroke();
+}
+
+// ── Reactions ─────────────────────────────────────────
+function drawReactions({ RA, RB }) {
+  const baseY = BY + BH/2 + 40;
+  const scale = 55 / P_MAX;
+
+  upArrow(BX0, baseY, RA * scale, '#4ade80');
+  ctx.fillStyle = '#86efac'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText(`R_A = ${RA.toFixed(1)} kN`, BX0, baseY + RA * scale + 16);
+
+  upArrow(BX1, baseY, RB * scale, '#4ade80');
+  ctx.fillStyle = '#86efac'; ctx.textAlign = 'center';
+  ctx.fillText(`R_B = ${RB.toFixed(1)} kN`, BX1, baseY + RB * scale + 16);
+}
+
+function upArrow(x, baseY, len, color) {
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(x, baseY); ctx.lineTo(x, baseY + Math.max(len, 2));
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, baseY);
+  ctx.lineTo(x - 7, baseY + 14); ctx.lineTo(x + 7, baseY + 14);
+  ctx.closePath(); ctx.fill();
+}
+
+// ── Shear Force Diagram ──────────────────────────────
+function drawSFD({ a_px, RA, RB }) {
+  const cy    = SFD_CY;
+  const scale = DH / P_MAX;
+  const lx    = BX0 + a_px;
+
+  // Section title & sub
+  sectionTitle('V — 전단력선도 (kN)', cy, '#63b3ed',
+    `양쪽 : +${RA.toFixed(1)} kN | 오른쪽 : −${RB.toFixed(1)} kN`);
+
+  drawBaseline(cy);
+  drawYAxis(cy, P_MAX, scale, '#63b3ed');
+
+  // Positive block (0 to a)
+  diagBlock(BX0, lx, cy, -RA * scale, '#63b3ed');
+
+  // Negative block (a to L)
+  diagBlock(lx, BX1, cy, RB * scale, '#f6ad55');
+
+  // Vertical jump at load
+  ctx.strokeStyle = '#a0aec0'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(lx, cy - RA * scale);
+  ctx.lineTo(lx, cy + RB * scale);
+  ctx.stroke();
+
+  // Value labels
+  ctx.font = 'bold 11px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#90cdf4';
+  if (a_px > 30)
+    ctx.fillText(`+${RA.toFixed(1)}`, (BX0 + lx) / 2, cy - RA * scale - 5);
+  ctx.fillStyle = '#fbd38d';
+  if (BL - a_px > 30)
+    ctx.fillText(`−${RB.toFixed(1)}`, (lx + BX1) / 2, cy + RB * scale + 14);
+}
+
+// ── Bending Moment Diagram ───────────────────────────
+function drawBMD({ a_px, a_m, Mmax }) {
+  const cy     = BMD_CY;
+  const M_AXIS = 300;                  // fixed y-axis max (kN·m)
+  const Mscl   = DH / M_AXIS;
+  const lx     = BX0 + a_px;
+
+  sectionTitle('M — 굽힘모멘트선도 (kN·m)', cy, '#c084fc',
+    `최대 모멘트 : ${Mmax.toFixed(2)} kN·m (x = ${a_m.toFixed(2)} m)`);
+
+  drawBaseline(cy);
+  drawYAxis(cy, M_AXIS, Mscl, '#c084fc');
+
+  // Filled polygon
+  const N = 500;
+  ctx.beginPath(); ctx.moveTo(BX0, cy);
+  for (let i = 0; i <= N; i++) {
+    const x = BX0 + (i / N) * BL;
+    ctx.lineTo(x, cy - M_at(x) * Mscl);
+  }
+  ctx.lineTo(BX1, cy); ctx.closePath();
+  const grd = ctx.createLinearGradient(0, cy - DH, 0, cy);
+  grd.addColorStop(0, '#c084fc50'); grd.addColorStop(1, '#c084fc12');
+  ctx.fillStyle = grd; ctx.fill();
+
+  // Outline
+  ctx.beginPath(); ctx.moveTo(BX0, cy);
+  for (let i = 0; i <= N; i++) {
+    const x = BX0 + (i / N) * BL;
+    ctx.lineTo(x, cy - M_at(x) * Mscl);
+  }
+  ctx.lineTo(BX1, cy);
+  ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2; ctx.stroke();
+
+  // Max moment label
+  if (Mmax > 0.01) {
+    ctx.fillStyle = '#e9d8fd'; ctx.font = 'bold 11px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${Mmax.toFixed(2)} kN·m`, lx, cy - Mmax * Mscl - 6);
+  }
+}
+
+// ── X-axis ticks ──────────────────────────────────────
+function drawXAxis() {
+  ctx.fillStyle = '#8b949e'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'center';
+  for (let i = 0; i <= 4; i++) {
+    const x = BX0 + (i / 4) * BL;
+    const label = `${(i / 4 * Lm).toFixed(1)} m`;
+    ctx.fillText(label, x, BY + BH/2 + 7);
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────
+function drawBaseline(cy) {
+  ctx.save();
+  ctx.strokeStyle = '#374151'; ctx.lineWidth = 1;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(BX0, cy); ctx.lineTo(BX1, cy);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawYAxis(cy, maxVal, scale, color) {
+  // Axis line
+  ctx.strokeStyle = '#4b5563'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(BX0 - 1, cy + DH + 4);
+  ctx.lineTo(BX0 - 1, cy - DH - 4);
+  ctx.stroke();
+  // Arrow tip
+  ctx.fillStyle = '#4b5563';
+  ctx.beginPath();
+  ctx.moveTo(BX0 - 1, cy - DH - 4);
+  ctx.lineTo(BX0 - 5, cy - DH + 6);
+  ctx.lineTo(BX0 + 3, cy - DH + 6);
+  ctx.fill();
+  // Tick at max
+  ctx.strokeStyle = '#4b5563'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(BX0 - 6, cy - DH); ctx.lineTo(BX0 + 2, cy - DH); ctx.stroke();
+  ctx.fillStyle = color; ctx.font = '9px Segoe UI'; ctx.textAlign = 'right';
+  ctx.fillText(maxVal.toFixed(1), BX0 - 8, cy - DH + 4);
+}
+
+function sectionTitle(text, cy, color, sub) {
+  ctx.fillStyle = color; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText(text, BX0, cy - DH - 14);
+  if (sub) {
+    ctx.fillStyle = color + 'aa'; ctx.font = '10px Segoe UI';
+    ctx.fillText(sub, BX0, cy - DH - 3);
+  }
+}
+
+function diagBlock(x0, x1, cy, offset, color) {
+  // offset > 0 → below baseline, offset < 0 → above baseline
+  const top = offset < 0 ? cy + offset : cy;
+  const bot = offset < 0 ? cy : cy + offset;
+  ctx.fillStyle = color + '40';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.fillRect(x0, top, x1 - x0, bot - top);
+  ctx.strokeRect(x0, top, x1 - x0, bot - top);
+}
+
+function updateChips({ a_m, RA, RB, Mmax }) {
+  document.getElementById('c-pos').textContent  = `a = ${a_m.toFixed(2)} m`;
+  document.getElementById('c-P').textContent    = `P = ${P.toFixed(0)} kN`;
+  document.getElementById('c-RA').textContent   = `R_A = ${RA.toFixed(2)} kN`;
+  document.getElementById('c-RB').textContent   = `R_B = ${RB.toFixed(2)} kN`;
+  document.getElementById('c-Mmax').textContent = `M_max = ${Mmax.toFixed(2)} kN·m`;
+}
+
+// ── Mouse / Touch interaction ────────────────────────
+function getPos(e) {
+  const r  = cv.getBoundingClientRect();
+  const sx = CW / r.width, sy = CH / r.height;
+  if (e.touches) {
+    const t = e.touches[0] || e.changedTouches[0];
+    return { x: (t.clientX - r.left) * sx, y: (t.clientY - r.top) * sy };
+  }
+  return { x: (e.clientX - r.left) * sx, y: (e.clientY - r.top) * sy };
+}
+
+function onStart(e) {
+  e.preventDefault();
+  const { x, y } = getPos(e);
+  if (isOnHandle(x, y)) { drag = true; cv.style.cursor = 'grabbing'; }
+}
+
+function onMove(e) {
+  e.preventDefault();
+  const { x, y } = getPos(e);
+  if (drag) {
+    loadX = Math.max(BX0 + 5, Math.min(BX1 - 5, x));
+    const dy = TIP_Y - y;                          // pixels above beam tip
+    P = Math.max(5, Math.min(P_MAX, (dy - 25) / 80 * P_MAX));
+    draw();
+  } else {
+    cv.style.cursor = isOnHandle(x, y) ? 'grab' : 'default';
+  }
+}
+
+function onEnd() { drag = false; cv.style.cursor = 'default'; }
+
+cv.addEventListener('mousedown',  onStart);
+cv.addEventListener('mousemove',  onMove);
+cv.addEventListener('mouseup',    onEnd);
+cv.addEventListener('mouseleave', onEnd);
+cv.addEventListener('touchstart', onStart, { passive: false });
+cv.addEventListener('touchmove',  onMove,  { passive: false });
+cv.addEventListener('touchend',   onEnd,   { passive: false });
+
+draw();
+</script>
+</body>
+</html>
