@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SHR & 유량 계산 — 냉동공조</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+      background: #0f1117;
+      color: #e8eaf0;
+      min-height: 100vh;
+    }
+
+    nav {
+      padding: 16px 40px;
+      border-bottom: 1px solid #1a2133;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    nav a { color: #6b7280; text-decoration: none; font-size: 13px; transition: color .2s; }
+    nav a:hover { color: #e8eaf0; }
+    nav .sep { color: #374151; }
+    nav .current { color: #60a5fa; font-weight: 600; font-size: 13px; }
+
+    .hero {
+      padding: 40px 40px 28px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(59,130,246,.12);
+      border: 1px solid rgba(59,130,246,.3);
+      color: #60a5fa;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+    .hero h1 {
+      font-size: clamp(20px, 3vw, 32px);
+      font-weight: 800;
+      background: linear-gradient(135deg, #e8eaf0 40%, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+    .hero p { color: #8892a4; font-size: 14px; line-height: 1.7; }
+
+    /* ── Problem box ── */
+    .problem-box {
+      max-width: 1200px;
+      margin: 0 auto 24px;
+      padding: 0 40px;
+    }
+    .problem-inner {
+      background: #0a0d14;
+      border: 1px solid #253047;
+      border-left: 3px solid #3b82f6;
+      border-radius: 12px;
+      padding: 18px 22px;
+    }
+    .problem-inner .p-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #60a5fa;
+      margin-bottom: 10px;
+    }
+    .problem-inner p { font-size: 13px; color: #8892a4; line-height: 1.8; }
+    .problem-inner strong { color: #cbd5e1; }
+
+    /* ── Main grid ── */
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 40px 60px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .left-panel { display: flex; flex-direction: column; gap: 16px; }
+    .right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Panel card ── */
+    .panel {
+      background: #141920;
+      border: 1px solid #1e2a3a;
+      border-radius: 16px;
+      padding: 20px 22px;
+    }
+    .panel-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #475569;
+      margin-bottom: 18px;
+    }
+
+    /* ── Sliders ── */
+    .slider-group { margin-bottom: 20px; }
+    .slider-group:last-child { margin-bottom: 0; }
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 8px;
+    }
+    .slider-name { font-size: 13px; color: #94a3b8; }
+    .slider-val-wrap { text-align: right; }
+    .slider-val {
+      font-size: 17px;
+      font-weight: 800;
+      color: #60a5fa;
+      font-variant-numeric: tabular-nums;
+    }
+    .slider-unit { font-size: 11px; color: #475569; margin-left: 2px; }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: #1e2a3a;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #3b82f6;
+      box-shadow: 0 0 10px rgba(59,130,246,.5);
+      cursor: grab;
+      transition: transform .1s;
+    }
+    input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); cursor: grabbing; }
+
+    /* ── Solution steps ── */
+    .step {
+      background: #0f1117;
+      border: 1px solid #1e2a3a;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
+    }
+    .step:last-child { margin-bottom: 0; }
+    .step-num {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #3b82f6;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .step-title { font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 10px; }
+    .formula {
+      background: #0a0d14;
+      border: 1px solid #1a2133;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 12.5px;
+      color: #93c5fd;
+      margin-bottom: 12px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+    .result-big {
+      font-size: 26px;
+      font-weight: 800;
+      color: #60a5fa;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .result-unit { font-size: 13px; color: #475569; margin-left: 4px; }
+
+    /* ── Canvas charts ── */
+    canvas { display: block; width: 100%; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: #374151;
+      font-size: 13px;
+      border-top: 1px solid #1a2133;
+    }
+
+    @media (max-width: 820px) {
+      nav { padding: 14px 20px; }
+      .hero { padding: 28px 20px 20px; }
+      .problem-box { padding: 0 20px; }
+      .main-grid { grid-template-columns: 1fr; padding: 0 20px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html">홈</a>
+  <span class="sep">›</span>
+  <a href="index.html">냉동공조</a>
+  <span class="sep">›</span>
+  <span class="current">SHR & 유량 계산</span>
+</nav>
+
+<div class="hero">
+  <div class="badge">HVAC · Psychrometrics</div>
+  <h1>현열비(SHR) & 공기 질량 유량 계산</h1>
+  <p>슬라이더로 변수를 바꿔가며 SHR과 질량 유량이 어떻게 달라지는지 확인하세요.</p>
+</div>
+
+<div class="problem-box">
+  <div class="problem-inner">
+    <div class="p-title">문제</div>
+    <p>
+      단일 구역 공기조화기(Single-zone A/C)의 <strong>현열 부하 Q<sub>s</sub> = 65 kW</strong>,
+      <strong>잠열 부하 Q<sub>l</sub> = 8 kW</strong>.<br>
+      실내 조건: 24°C, RH 50%, 실내 공기 엔탈피 <strong>h<sub>space</sub> = 47.5 kJ/kg</strong>.<br>
+      급기 엔탈피 <strong>h<sub>supply</sub> = 34.2 kJ/kg</strong> 일 때,
+      ① <strong>SHR</strong> 과 ② <strong>질량 유량 ṁ (kg/s)</strong> 을 구하시오.
+    </p>
+  </div>
+</div>
+
+<div class="main-grid">
+
+  <!-- ── 좌측: 슬라이더 + 풀이 ── -->
+  <div class="left-panel">
+
+    <div class="panel">
+      <div class="panel-title">변수 조정</div>
+
+      <div class="slider-group">
+        <div class="slider-label">
+          <span class="slider-name">Q<sub>s</sub> — 현열 부하</span>
+          <div class="slider-val-wrap">
+            <span class="slider-val" id="v-qs">65</span><span class="slider-unit">kW</span>
+          </div>
+        </div>
+        <input type="range" id="sl-qs" min="10" max="150" step="1" value="65">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-label">
+          <span class="slider-name">Q<sub>l</sub> — 잠열 부하</span>
+          <div class="slider-val-wrap">
+            <span class="slider-val" id="v-ql">8</span><span class="slider-unit">kW</span>
+          </div>
+        </div>
+        <input type="range" id="sl-ql" min="0" max="50" step="0.5" value="8">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-label">
+          <span class="slider-name">h<sub>space</sub> — 실내 엔탈피</span>
+          <div class="slider-val-wrap">
+            <span class="slider-val" id="v-hs">47.5</span><span class="slider-unit">kJ/kg</span>
+          </div>
+        </div>
+        <input type="range" id="sl-hs" min="35" max="65" step="0.5" value="47.5">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-label">
+          <span class="slider-name">h<sub>supply</sub> — 급기 엔탈피</span>
+          <div class="slider-val-wrap">
+            <span class="slider-val" id="v-hsu">34.2</span><span class="slider-unit">kJ/kg</span>
+          </div>
+        </div>
+        <input type="range" id="sl-hsu" min="20" max="44" step="0.1" value="34.2">
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">풀이 과정</div>
+
+      <div class="step">
+        <div class="step-num">Step 1</div>
+        <div class="step-title">전체 열 부하 Q<sub>total</sub></div>
+        <div class="formula" id="f-qt"></div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">Step 2</div>
+        <div class="step-title">현열비 (SHR)</div>
+        <div class="formula" id="f-shr"></div>
+        <span class="result-big" id="r-shr"></span><span class="result-unit">(무차원)</span>
+      </div>
+
+      <div class="step">
+        <div class="step-num">Step 3</div>
+        <div class="step-title">공기 질량 유량 ṁ</div>
+        <div class="formula" id="f-mdot"></div>
+        <span class="result-big" id="r-mdot"></span><span class="result-unit">kg/s</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 우측: 차트 3개 ── -->
+  <div class="right-panel">
+
+    <div class="panel">
+      <div class="panel-title">현열 / 잠열 구성 (SHR 도넛)</div>
+      <canvas id="c-donut" style="height:240px"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">급기 엔탈피 변화 → 질량 유량 ṁ</div>
+      <canvas id="c-line" style="height:260px"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">열 부하 비교</div>
+      <canvas id="c-bar" style="height:180px"></canvas>
+    </div>
+
+  </div>
+</div>
+
+<footer>&copy; 2026 기계공학 학습 포털</footer>
+
+<script>
+// ── State ──
+const S = { qs: 65, ql: 8, hs: 47.5, hsu: 34.2 };
+
+// ── Calc ──
+function calc() {
+  const qt = S.qs + S.ql;
+  const shr = qt > 0 ? S.qs / qt : 0;
+  const dh = S.hs - S.hsu;
+  const mdot = dh > 0.01 ? qt / dh : Infinity;
+  return { qt, shr, dh, mdot };
+}
+
+// ── Sliders ──
+function bind(slId, valId, key, fmt) {
+  const sl = document.getElementById(slId);
+  const vd = document.getElementById(valId);
+  sl.addEventListener('input', () => {
+    S[key] = parseFloat(sl.value);
+    vd.textContent = fmt ? parseFloat(sl.value).toFixed(1) : sl.value;
+    // enforce hsu < hs
+    if (key === 'hs') {
+      const hsuSl = document.getElementById('sl-hsu');
+      hsuSl.max = (S.hs - 1).toFixed(1);
+      if (S.hsu >= S.hs - 1) {
+        S.hsu = S.hs - 1;
+        hsuSl.value = S.hsu;
+        document.getElementById('v-hsu').textContent = S.hsu.toFixed(1);
+      }
+    }
+    update();
+  });
+}
+bind('sl-qs',  'v-qs',  'qs',  false);
+bind('sl-ql',  'v-ql',  'ql',  false);
+bind('sl-hs',  'v-hs',  'hs',  true);
+bind('sl-hsu', 'v-hsu', 'hsu', true);
+
+// ── Solution text ──
+function updateText() {
+  const { qt, shr, dh, mdot } = calc();
+  const { qs, ql, hs, hsu } = S;
+
+  document.getElementById('f-qt').textContent =
+    `Q_total = Q_s + Q_l\n       = ${qs} + ${ql} = ${qt.toFixed(1)} kW`;
+
+  document.getElementById('f-shr').textContent =
+    `SHR = Q_s / Q_total\n    = ${qs} / ${qt.toFixed(1)} = ${shr.toFixed(4)}`;
+  document.getElementById('r-shr').textContent = shr.toFixed(4);
+
+  const mdotStr = isFinite(mdot) ? mdot.toFixed(2) : '∞';
+  document.getElementById('f-mdot').textContent =
+    `ṁ = Q_total / (h_space − h_supply)\n  = ${qt.toFixed(1)} / (${hs.toFixed(1)} − ${hsu.toFixed(1)})\n  = ${qt.toFixed(1)} / ${dh.toFixed(1)} = ${mdotStr} kg/s`;
+  document.getElementById('r-mdot').textContent = mdotStr;
+}
+
+// ── Canvas helper ──
+function setup(id, cssH) {
+  const cv = document.getElementById(id);
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth;
+  cv.width  = W * dpr;
+  cv.height = cssH * dpr;
+  cv.style.height = cssH + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return { ctx, W, H: cssH };
+}
+
+// ── Donut chart ──
+function drawDonut() {
+  const { ctx, W, H } = setup('c-donut', 240);
+  const { shr } = calc();
+  const cx = W * 0.38, cy = H / 2, r = Math.min(W * 0.28, H * 0.44);
+
+  ctx.clearRect(0, 0, W, H);
+
+  const TAU = 2 * Math.PI, ST = -Math.PI / 2, GAP = 0.06;
+
+  // Sensible slice
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, r, ST, ST + shr * TAU - GAP / 2);
+  ctx.closePath();
+  ctx.fillStyle = '#3b82f6';
+  ctx.fill();
+
+  // Latent slice
+  if (shr < 1) {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, ST + shr * TAU + GAP / 2, ST + TAU);
+    ctx.closePath();
+    ctx.fillStyle = '#f97316';
+    ctx.fill();
+  }
+
+  // Hole
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.58, 0, TAU);
+  ctx.fillStyle = '#141920';
+  ctx.fill();
+
+  // Center text
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#60a5fa';
+  ctx.font = `bold ${Math.round(r * 0.42)}px 'Segoe UI', sans-serif`;
+  ctx.fillText((shr * 100).toFixed(1) + '%', cx, cy - r * 0.07);
+  ctx.fillStyle = '#6b7280';
+  ctx.font = `${Math.round(r * 0.2)}px 'Segoe UI', sans-serif`;
+  ctx.fillText('SHR', cx, cy + r * 0.22);
+
+  // Legend
+  const lx = W * 0.7, ly = H * 0.28, sq = 12, gap2 = 22;
+  [['#3b82f6', `현열 Qs  ${S.qs} kW`], ['#f97316', `잠열 Ql  ${S.ql} kW`]].forEach(([c, t], i) => {
+    const y = ly + i * gap2;
+    ctx.fillStyle = c;
+    ctx.fillRect(lx, y, sq, sq);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = `12px 'Segoe UI', sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(t, lx + sq + 8, y + sq / 2);
+  });
+}
+
+// ── Line chart: ṁ vs h_supply ──
+function drawLine() {
+  const { ctx, W, H } = setup('c-line', 260);
+  const { qt } = calc();
+  const { hs, hsu } = S;
+
+  const pad = { t: 16, r: 24, b: 40, l: 54 };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+
+  const xMin = 20, xMax = parseFloat((hs - 1).toFixed(1));
+  if (xMax <= xMin) { ctx.clearRect(0,0,W,H); return; }
+
+  // Build curve data
+  const pts = [];
+  for (let h = xMin; h <= xMax; h += 0.2) {
+    const d = hs - h;
+    if (d > 0) pts.push({ x: h, y: qt / d });
+  }
+  if (pts.length < 2) return;
+
+  const yMax = Math.min(pts[0].y * 1.15, 40);
+  const yMin = 0;
+
+  function px(x, y) {
+    return {
+      px: pad.l + (x - xMin) / (xMax - xMin) * cW,
+      py: pad.t + (1 - (y - yMin) / (yMax - yMin)) * cH
+    };
+  }
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = '#1e2a3a';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const v = yMin + i * (yMax - yMin) / 4;
+    const { py } = px(xMin, v);
+    ctx.beginPath(); ctx.moveTo(pad.l, py); ctx.lineTo(W - pad.r, py); ctx.stroke();
+    ctx.fillStyle = '#475569';
+    ctx.font = '11px Segoe UI';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(v.toFixed(1), pad.l - 6, py);
+  }
+
+  // X axis ticks
+  ctx.fillStyle = '#475569';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.font = '11px Segoe UI';
+  for (let i = 0; i <= 5; i++) {
+    const v = xMin + i * (xMax - xMin) / 5;
+    const { px: x } = px(v, yMin);
+    ctx.fillText(v.toFixed(0), x, H - pad.b + 6);
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('h_supply (kJ/kg)', W / 2, H - 12);
+
+  ctx.save();
+  ctx.translate(13, H / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('ṁ (kg/s)', 0, 0);
+  ctx.restore();
+
+  // Curve
+  ctx.beginPath();
+  ctx.strokeStyle = '#3b82f6';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  pts.forEach((p, i) => {
+    const { px: x, py: y } = px(p.x, Math.min(p.y, yMax));
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Current point marker
+  if (hsu >= xMin && hsu <= xMax) {
+    const curY = Math.min(qt / (hs - hsu), yMax);
+    const { px: cx2, py: cy2 } = px(hsu, curY);
+
+    // Crosshair
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = 'rgba(96,165,250,.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx2, pad.t); ctx.lineTo(cx2, H - pad.b);
+    ctx.moveTo(pad.l, cy2); ctx.lineTo(W - pad.r, cy2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Dot
+    ctx.beginPath();
+    ctx.arc(cx2, cy2, 7, 0, 2 * Math.PI);
+    ctx.fillStyle = '#1e3a8a';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx2, cy2, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = '#60a5fa';
+    ctx.fill();
+
+    // Label
+    const label = `ṁ = ${(qt / (hs - hsu)).toFixed(2)} kg/s`;
+    ctx.fillStyle = '#e8eaf0';
+    ctx.font = 'bold 12px Segoe UI';
+    ctx.textBaseline = 'bottom';
+    ctx.textAlign = cx2 > W * 0.65 ? 'right' : 'left';
+    ctx.fillText(label, cx2 + (cx2 > W * 0.65 ? -10 : 10), cy2 - 8);
+  }
+}
+
+// ── Bar chart ──
+function drawBar() {
+  const { ctx, W, H } = setup('c-bar', 180);
+  const { qt } = calc();
+  const { qs, ql } = S;
+
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = { t: 16, r: 80, b: 20, l: 78 };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+  const items = [
+    { label: 'Q_s (현열)', val: qs, color: '#3b82f6' },
+    { label: 'Q_l (잠열)', val: ql, color: '#f97316' },
+    { label: 'Q_total',   val: qt, color: '#8b5cf6' },
+  ];
+  const maxVal = qt * 1.08;
+  const bH = (cH / items.length) * 0.55;
+  const rowH = cH / items.length;
+
+  items.forEach(({ label, val, color }, i) => {
+    const y = pad.t + i * rowH + (rowH - bH) / 2;
+    const barW = (val / maxVal) * cW;
+
+    // Bar
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(pad.l, y, barW, bH, 4) : ctx.rect(pad.l, y, barW, bH);
+    ctx.fill();
+
+    // Label
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '11.5px Segoe UI';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, pad.l - 8, y + bH / 2);
+
+    // Value
+    ctx.fillStyle = color;
+    ctx.font = 'bold 12px Segoe UI';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${val.toFixed(1)} kW`, pad.l + barW + 8, y + bH / 2);
+  });
+}
+
+// ── Update all ──
+function update() {
+  updateText();
+  drawDonut();
+  drawLine();
+  drawBar();
+}
+
+window.addEventListener('resize', update);
+update();
+</script>
+</body>
+</html>
