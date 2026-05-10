@@ -244,6 +244,7 @@
           <div><span class="slider-val" id="v-hsu">34.2</span><span class="slider-unit">kJ/kg</span></div>
         </div>
         <input type="range" id="sl-hsu" min="20" max="44" step="0.1" value="34.2">
+        <div id="hsu-note" style="display:none; margin-top:6px; font-size:11px; color:#f97316; background:rgba(249,115,22,.1); border:1px solid rgba(249,115,22,.3); border-radius:6px; padding:5px 10px; line-height:1.5;"></div>
       </div>
     </div>
 
@@ -395,6 +396,52 @@
     const T_sup = T_SPACE - qs / (mdot * Cpa);
     const W_sup = wFromTH(T_sup, hsu);
     return { room: { T: T_SPACE, W: W_room }, supply: { T: T_sup, W: W_sup } };
+  }
+
+  // h_supply 최솟값: 급기 상태가 포화선 밖으로 나가지 않는 최솟값 (이진탐색)
+  function findHsupMin() {
+    const { qs, ql, hs } = S;
+    const qt = qs + ql;
+
+    function satMargin(hsu) {
+      const dh = hs - hsu;
+      if (dh < 0.01) return -999;
+      const mdot = qt / dh;
+      const T_sup = T_SPACE - qs / (mdot * Cpa);
+      return wSat(T_sup) - wFromTH(T_sup, hsu); // 양수=포화선 안, 음수=포화선 밖
+    }
+
+    const hMax = hs - 0.5;
+    if (satMargin(hMax) < 0) return hMax; // 비정상 케이스
+
+    let lo = 10, hi = hMax;
+    if (satMargin(lo) >= 0) return lo; // 제한 불필요
+
+    for (let i = 0; i < 60; i++) {
+      const mid = (lo + hi) / 2;
+      if (satMargin(mid) < 0) lo = mid; else hi = mid;
+      if (hi - lo < 0.05) break;
+    }
+    return Math.ceil(hi * 10) / 10; // 0.1 단위 올림 (안전 마진)
+  }
+
+  function enforceHsupConstraint() {
+    const hMin = Math.max(findHsupMin(), 20);
+    const slHsu = document.getElementById('sl-hsu');
+    const note  = document.getElementById('hsu-note');
+    slHsu.min = hMin.toFixed(1);
+    if (S.hsu < hMin) {
+      S.hsu = hMin;
+      slHsu.value = hMin;
+      document.getElementById('v-hsu').textContent = hMin.toFixed(1);
+    }
+    if (note) {
+      const isConstrained = hMin > 20.1;
+      note.style.display = isConstrained ? 'block' : 'none';
+      note.textContent = isConstrained
+        ? `※ 하한 ${hMin.toFixed(1)} kJ/kg — 이 이하는 급기가 포화선을 초과합니다`
+        : '';
+    }
   }
 
   // ── Psychrometric Chart ──
@@ -761,6 +808,7 @@
   }
 
   function update() {
+    enforceHsupConstraint();
     updateText();
     drawDonut();
     drawLine();
