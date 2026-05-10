@@ -4,140 +4,126 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>기계설계기초 — 기계공학 학습 포털</title>
+  <script>(function(){document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark';})();</script>
   <style>
+    :root {
+      --bg: #0f1117;
+      --bg-card: #141920;
+      --border: #1e2a3a;
+      --border-subtle: #1a2133;
+      --text: #e8eaf0;
+      --text-muted: #8892a4;
+      --text-dim: #6b7280;
+      --nav-link: #6b7280;
+      --chip-bg: #181d27;
+      --chip-border: #252d3d;
+      --chip-text: #9ca3af;
+      --btn-bg: #1e2a3a;
+    }
+    html[data-theme="light"] {
+      --bg: #f5f7fa;
+      --bg-card: #ffffff;
+      --border: #e2e8f0;
+      --border-subtle: #e2e8f0;
+      --text: #1e2330;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --nav-link: #64748b;
+      --chip-bg: #f1f5f9;
+      --chip-border: #e2e8f0;
+      --chip-text: #64748b;
+      --btn-bg: #f1f5f9;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
-      background: #0f1117;
-      color: #e8eaf0;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      transition: background .25s, color .25s;
     }
 
     nav {
       padding: 20px 40px;
-      border-bottom: 1px solid #1a2133;
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex; align-items: center; gap: 12px;
     }
-
-    nav a {
-      color: #6b7280;
-      text-decoration: none;
-      font-size: 14px;
-      transition: color 0.2s;
-    }
-    nav a:hover { color: #e8eaf0; }
-    nav .sep { color: #374151; }
+    nav a { color: var(--nav-link); text-decoration: none; font-size: 14px; transition: color .2s; }
+    nav a:hover { color: var(--text); }
+    nav .sep { color: var(--border); }
     nav .current { color: #fb923c; font-weight: 600; }
+
+    #theme-btn {
+      margin-left: auto;
+      background: var(--btn-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      transition: background .2s;
+    }
+    #theme-btn:hover { opacity: .8; }
 
     .hero {
       padding: 60px 40px 48px;
-      max-width: 900px;
-      margin: 0 auto;
-      width: 100%;
+      max-width: 900px; margin: 0 auto; width: 100%;
     }
-
     .hero .badge {
       display: inline-block;
-      background: rgba(249, 115, 22, 0.12);
-      border: 1px solid rgba(249, 115, 22, 0.3);
+      background: rgba(249,115,22,.12);
+      border: 1px solid rgba(249,115,22,.3);
       color: #fb923c;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      padding: 5px 16px;
-      border-radius: 20px;
-      margin-bottom: 20px;
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      padding: 5px 16px; border-radius: 20px; margin-bottom: 20px;
     }
-
     .hero h1 {
       font-size: clamp(26px, 4vw, 40px);
-      font-weight: 800;
-      margin-bottom: 14px;
-      background: linear-gradient(135deg, #e8eaf0 40%, #fb923c);
+      font-weight: 800; margin-bottom: 14px;
+      background: linear-gradient(135deg, var(--text) 40%, #fb923c);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-
-    .hero p {
-      color: #8892a4;
-      font-size: 15px;
-      line-height: 1.75;
-      max-width: 560px;
-    }
+    .hero p { color: var(--text-muted); font-size: 15px; line-height: 1.75; max-width: 560px; }
 
     .coming-soon {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px 40px 80px;
-      text-align: center;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 20px 40px 80px; text-align: center;
     }
-
     .coming-soon .icon {
-      width: 80px;
-      height: 80px;
-      background: rgba(249, 115, 22, 0.1);
-      border: 1px solid rgba(249, 115, 22, 0.2);
+      width: 80px; height: 80px;
+      background: rgba(249,115,22,.1);
+      border: 1px solid rgba(249,115,22,.2);
       border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       margin-bottom: 28px;
     }
-
-    .coming-soon .icon svg {
-      width: 38px;
-      height: 38px;
-      color: #fb923c;
-    }
-
-    .coming-soon h2 {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: #d1d5db;
-    }
-
-    .coming-soon p {
-      color: #6b7280;
-      font-size: 14px;
-      line-height: 1.7;
-      max-width: 360px;
-    }
+    .coming-soon .icon svg { width: 38px; height: 38px; color: #fb923c; }
 
     .topic-preview {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 36px;
-      justify-content: center;
-      max-width: 600px;
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 36px; justify-content: center; max-width: 600px;
     }
-
     .topic-chip {
-      background: #181d27;
-      border: 1px solid #252d3d;
-      color: #9ca3af;
-      font-size: 12px;
-      padding: 6px 14px;
-      border-radius: 20px;
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      color: var(--chip-text);
+      font-size: 12px; padding: 6px 14px; border-radius: 20px;
     }
 
     footer {
-      text-align: center;
-      padding: 24px;
-      color: #374151;
-      font-size: 13px;
-      border-top: 1px solid #1a2133;
+      text-align: center; padding: 24px;
+      color: var(--text-dim); font-size: 13px;
+      border-top: 1px solid var(--border-subtle);
     }
   </style>
 </head>
@@ -147,6 +133,7 @@
     <a href="../index.html">홈</a>
     <span class="sep">›</span>
     <span class="current">기계설계기초</span>
+    <button id="theme-btn" onclick="toggleTheme()" title="테마 전환"><span id="ti"></span></button>
   </nav>
 
   <div class="hero">
@@ -162,22 +149,20 @@
         <path d="M19.07 4.93l-1.41 1.41M5.34 17.66l-1.41 1.41M20 12h-2M6 12H4M19.07 19.07l-1.41-1.41M5.34 6.34L3.93 4.93M12 20v-2M12 6V4M16.66 17.66l1.41 1.41M6.34 6.34L4.93 4.93"/>
       </svg>
     </div>
+
     <div class="topic-preview" style="margin-top:0; margin-bottom:32px;">
       <a href="wrench.html" style="
         display:inline-block;
-        background: rgba(249,115,22,.15);
-        border: 1px solid rgba(249,115,22,.4);
-        color: #fb923c;
-        font-size: 13px;
-        font-weight: 600;
-        padding: 10px 22px;
-        border-radius: 10px;
-        text-decoration: none;
-        transition: background .2s;
+        background:rgba(249,115,22,.15);
+        border:1px solid rgba(249,115,22,.4);
+        color:#fb923c;
+        font-size:13px; font-weight:600;
+        padding:10px 22px; border-radius:10px;
+        text-decoration:none; transition:background .2s;
       ">기역자 렌치 응력 시뮬레이터 →</a>
     </div>
 
-    <p style="color:#4b5563; font-size:13px;">추가 예제 준비 중...</p>
+    <p style="color:var(--text-dim); font-size:13px;">추가 예제 준비 중...</p>
 
     <div class="topic-preview">
       <span class="topic-chip">응력 · 변형률</span>
@@ -191,9 +176,16 @@
     </div>
   </div>
 
-  <footer>
-    &copy; 2026 기계공학 학습 포털
-  </footer>
+  <footer>&copy; 2026 기계공학 학습 포털</footer>
 
+  <script>
+    function toggleTheme() {
+      var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem('theme', next);
+      document.getElementById('ti').textContent = next === 'dark' ? '☀️' : '🌙';
+    }
+    document.getElementById('ti').textContent = (document.documentElement.dataset.theme === 'dark') ? '☀️' : '🌙';
+  </script>
 </body>
 </html>

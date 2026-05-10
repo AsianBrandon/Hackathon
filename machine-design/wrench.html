@@ -4,225 +4,184 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>기역자 렌치 – X축 회전</title>
+  <script>(function(){document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark';})();</script>
   <style>
+    :root {
+      --bg: #0f1117;
+      --panel-bg: rgba(15,17,23,.92);
+      --panel-border: rgba(255,255,255,.13);
+      --panel-title: #cbd5e1;
+      --label: #94a3b8;
+      --text: #e2e8f0;
+      --input-bg: rgba(255,255,255,.06);
+      --input-border: rgba(255,255,255,.15);
+      --input-text: #e2e8f0;
+      --legend-bg: rgba(15,17,23,.82);
+      --legend-border: rgba(255,255,255,.1);
+      --legend-text: #94a3b8;
+      --axis: rgba(255,255,255,0.2);
+      --axis-label: rgba(255,255,255,0.55);
+      --axis-tick: rgba(255,255,255,0.15);
+      --axis-tick-label: rgba(255,255,255,0.4);
+      --scene-bg: 0x0f1117;
+    }
+    html[data-theme="light"] {
+      --bg: #e8edf3;
+      --panel-bg: rgba(255,255,255,.93);
+      --panel-border: rgba(0,0,0,.13);
+      --panel-title: #334155;
+      --label: #475569;
+      --text: #1e293b;
+      --input-bg: rgba(0,0,0,.04);
+      --input-border: rgba(0,0,0,.15);
+      --input-text: #1e293b;
+      --legend-bg: rgba(255,255,255,.7);
+      --legend-border: rgba(0,0,0,.08);
+      --legend-text: #475569;
+      --axis: rgba(0,0,0,0.2);
+      --axis-label: rgba(0,0,0,0.55);
+      --axis-tick: rgba(0,0,0,0.15);
+      --axis-tick-label: rgba(0,0,0,0.4);
+      --scene-bg: 0xe8edf3;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #e8edf3; overflow: hidden; font-family: system-ui, sans-serif; }
+    body { background: var(--bg); overflow: hidden; font-family: system-ui, sans-serif; transition: background .25s; }
     canvas { display: block; }
 
-    /* ─── 우측 컬럼 ─── */
+    #theme-btn {
+      position: fixed; top: 14px; left: 22px; z-index: 200;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px; padding: 5px 10px;
+      cursor: pointer; font-size: 15px; line-height: 1;
+      backdrop-filter: blur(10px);
+    }
+    #theme-btn:hover { opacity: .8; }
+
     #right-col {
-      position: fixed;
-      top: 22px;
-      right: 22px;
-      width: 340px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-height: calc(100vh - 44px);
-      overflow-y: auto;
-      scrollbar-width: none;
+      position: fixed; top: 22px; right: 22px; width: 340px;
+      display: flex; flex-direction: column; gap: 10px;
+      max-height: calc(100vh - 44px); overflow-y: auto; scrollbar-width: none;
     }
     #right-col::-webkit-scrollbar { display: none; }
 
-    /* ─── Slider UI ─── */
     #controls {
-      background: rgba(255,255,255,.93);
-      border: 1px solid rgba(0,0,0,.13);
-      border-radius: 14px;
-      padding: 14px 18px;
-      display: flex;
-      color: #1e293b;
-      backdrop-filter: blur(14px);
-      user-select: none;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px; padding: 14px 18px;
+      display: flex; flex-direction: column; gap: 12px; align-items: stretch;
+      color: var(--text); backdrop-filter: blur(14px); user-select: none;
     }
-    #controls label { font-size: 13px; color: #475569; white-space: nowrap; letter-spacing: .03em; }
+    #controls label { font-size: 13px; color: var(--label); white-space: nowrap; letter-spacing: .03em; }
 
-    #slider {
+    #controls input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      flex: 1; height: 5px; border-radius: 3px; outline: none; cursor: pointer;
+    }
+    #controls input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      appearance: none;
-      width: 280px;
-      height: 5px;
-      border-radius: 3px;
-      background: linear-gradient(to right, #3b82f6 0%, #22d3ee 50%, #ef4444 100%);
-      outline: none;
-      cursor: pointer;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--text); box-shadow: 0 2px 10px rgba(0,0,0,.4);
+      cursor: grab; transition: transform .1s;
     }
-    #slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: #334155;
-      box-shadow: 0 2px 10px rgba(0,0,0,.6);
-      cursor: grab;
-      transition: transform .1s;
-    }
-    #slider::-webkit-slider-thumb:active { transform: scale(1.15); cursor: grabbing; }
+    #controls input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.15); cursor: grabbing; }
 
-    #angleVal {
-      font-size: 18px;
-      font-weight: 700;
-      min-width: 62px;
-      text-align: right;
-      color: #60a5fa;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* ─── Mohr 원 ─── */
-    #mohr-wrap {
-      background: rgba(255,255,255,.93);
-      border: 1px solid rgba(0,0,0,.1);
-      border-radius: 14px;
-      padding: 12px 14px 10px;
+    #mohr-wrap, #yield-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px; padding: 12px 14px 10px;
       backdrop-filter: blur(10px);
     }
-    #mohr-wrap .mohr-title {
-      color: #334155; font-size: 12px; font-weight: 600;
+    #mohr-wrap .mohr-title, #yield-panel .yield-title {
+      color: var(--panel-title); font-size: 12px; font-weight: 600;
       letter-spacing: .05em; text-align: center; margin-bottom: 8px;
     }
-    #mohrCanvas  { display: block; width: 100%; height: auto; }
-    #yieldCanvas { display: block; width: 100%; height: auto; }
+    #mohrCanvas, #yieldCanvas { display: block; width: 100%; height: auto; }
 
-    /* ─── φ 패널 ─── */
     #phi-panel {
-      background: rgba(255,255,255,.93);
-      border: 1px solid rgba(0,0,0,.1);
-      border-radius: 14px;
-      padding: 16px 22px;
-      backdrop-filter: blur(10px);
-      color: #475569;
-      font-size: 13px;
-      min-width: 230px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px; padding: 16px 22px;
+      backdrop-filter: blur(10px); color: var(--label);
+      font-size: 13px; min-width: 230px;
     }
-    #phi-panel .title { color: #334155; font-size: 12px; font-weight: 600; letter-spacing: .05em; margin-bottom: 12px; }
+    #phi-panel .title { color: var(--panel-title); font-size: 12px; font-weight: 600; letter-spacing: .05em; margin-bottom: 12px; }
     #phi-panel .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 12px; }
-    #phi-panel .row label { color: #475569; white-space: nowrap; }
-    #nInput {
-      width: 90px;
-      background: rgba(0,0,0,.04);
-      border: 1px solid rgba(0,0,0,.15);
-      border-radius: 6px;
-      color: #1e293b;
-      font-size: 13px;
-      padding: 4px 8px;
-      text-align: right;
-      outline: none;
-    }
-    #nInput:focus { border-color: #60a5fa; }
-    #phiVal {
-      color: #34d399;
-      font-weight: 700;
-      font-size: 14px;
-      font-variant-numeric: tabular-nums;
-      text-align: right;
-    }
-    #phi-panel .formula { color: #475569; font-size: 11px; margin-top: 10px; line-height: 1.7; border-top: 1px solid rgba(0,0,0,.04); padding-top: 10px; }
+    #phi-panel .row label { color: var(--label); white-space: nowrap; }
+    #phi-panel .formula { color: var(--label); font-size: 11px; margin-top: 10px; line-height: 1.7; border-top: 1px solid var(--panel-border); padding-top: 10px; }
 
-    /* ─── Yield 선도 패널 ─── */
-    #yield-panel {
-      background: rgba(255,255,255,.93);
-      border: 1px solid rgba(0,0,0,.1);
-      border-radius: 14px;
-      padding: 12px 14px 10px;
-      backdrop-filter: blur(10px);
+    #nInput, .const-input {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px; color: var(--input-text);
+      font-size: 13px; padding: 4px 8px; text-align: right; outline: none;
     }
-    #yield-panel .yield-title {
-      color: #334155; font-size: 12px; font-weight: 600;
-      letter-spacing: .05em; text-align: center; margin-bottom: 6px;
-    }
-    .yield-legend {
-      display: flex; justify-content: space-between;
-      margin-top: 7px; font-size: 11px; font-variant-numeric: tabular-nums;
-    }
-    .yield-warn {
-      margin-top: 5px; text-align: center;
-      font-size: 11px; font-weight: 700; letter-spacing: .04em;
-      border-radius: 7px; padding: 3px 0;
-      display: none;
-    }
-    #vm-warn  { color: #38bdf8; background: rgba(56,189,248,.10); border: 1px solid rgba(56,189,248,.35); }
-    #mss-warn { color: #f59e0b; background: rgba(245,158,11,.10); border: 1px solid rgba(245,158,11,.35); }
+    #nInput { width: 90px; }
+    #nInput:focus, .const-input:focus { border-color: #60a5fa; }
 
-    /* ─── 상수 입력 패널 ─── */
+    #phiVal { color: #34d399; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; text-align: right; }
+    #angleVal { color: #60a5fa; font-weight: 700; }
+    #sigmaVal { color: #f87171; font-weight: 700; font-size: 14px; }
+    #tauVal { color: #c084fc; font-weight: 700; font-size: 14px; }
+
     #const-panel {
-      background: rgba(255,255,255,.93);
-      border: 1px solid rgba(0,0,0,.1);
-      border-radius: 14px;
-      padding: 12px 16px 12px;
-      backdrop-filter: blur(10px);
-      min-width: 200px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px; padding: 12px 16px;
+      backdrop-filter: blur(10px); min-width: 200px;
     }
-    #const-panel .const-title {
-      color: #334155; font-size: 12px; font-weight: 600;
-      letter-spacing: .05em; text-align: center; margin-bottom: 10px;
-    }
-    .const-row {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; margin-bottom: 8px; color: #475569; font-size: 12px;
-    }
+    #const-panel .const-title { color: var(--panel-title); font-size: 12px; font-weight: 600; letter-spacing: .05em; text-align: center; margin-bottom: 10px; }
+    .const-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; color: var(--label); font-size: 12px; }
     .const-row:last-child { margin-bottom: 0; }
     .const-row label { white-space: nowrap; }
-    .const-input {
-      width: 110px; background: rgba(0,0,0,.04);
-      border: 1px solid rgba(0,0,0,.15); border-radius: 6px;
-      color: #1e293b; font-size: 12px; padding: 3px 7px;
-      text-align: right; outline: none;
-    }
-    .const-input:focus { border-color: #60a5fa; }
+    .const-input { width: 110px; font-size: 12px; padding: 3px 7px; }
 
-    /* ─── Legend ─── */
     #legend {
-      position: fixed;
-      top: 22px;
-      left: 22px;
-      color: #475569;
-      font-size: 13px;
-      line-height: 2;
+      position: fixed; top: 22px; left: 22px;
+      color: var(--legend-text); font-size: 13px; line-height: 2;
       pointer-events: none;
-      background: rgba(255,255,255,.7);
-      border: 1px solid rgba(0,0,0,.08);
-      border-radius: 12px;
-      padding: 14px 18px;
+      background: var(--legend-bg);
+      border: 1px solid var(--legend-border);
+      border-radius: 12px; padding: 14px 18px;
       backdrop-filter: blur(8px);
     }
-    .dot {
-      display: inline-block;
-      width: 11px; height: 11px;
-      border-radius: 50%;
-      margin-right: 7px;
-      vertical-align: middle;
-    }
+    .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 7px; vertical-align: middle; }
 
+    .yield-legend { display: flex; justify-content: space-between; margin-top: 7px; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .yield-warn { margin-top: 5px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: .04em; border-radius: 7px; padding: 3px 0; display: none; }
+    #vm-warn  { color: #38bdf8; background: rgba(56,189,248,.10); border: 1px solid rgba(56,189,248,.35); }
+    #mss-warn { color: #f59e0b; background: rgba(245,158,11,.10); border: 1px solid rgba(245,158,11,.35); }
   </style>
 </head>
 <body>
 
-  <div id="right-col">
+  <button id="theme-btn" onclick="toggleTheme()" title="테마 전환"><span id="ti"></span></button>
 
-    <div id="controls" style="flex-direction:column; gap:12px; align-items:stretch;">
-      <div style="display:flex; align-items:center; gap:16px;">
+  <div id="right-col">
+    <div id="controls">
+      <div style="display:flex;align-items:center;gap:16px;">
         <label style="min-width:54px;">축 길이</label>
         <input type="range" id="llSlider" min="0.1" max="0.2" value="0.15" step="0.001"
-               style="-webkit-appearance:none; appearance:none; flex:1; height:5px; border-radius:3px;
-                      background:linear-gradient(to right,#3b82f6,#22d3ee); outline:none; cursor:pointer;">
-        <span id="llVal" style="color:#60a5fa; font-weight:700; min-width:48px; text-align:right; font-variant-numeric:tabular-nums;">0.150</span>
+               style="background:linear-gradient(to right,#3b82f6,#22d3ee);">
+        <span id="llVal" style="color:#60a5fa;font-weight:700;min-width:48px;text-align:right;font-variant-numeric:tabular-nums;">0.150</span>
       </div>
-      <div style="display:flex; align-items:center; gap:16px;">
+      <div style="display:flex;align-items:center;gap:16px;">
         <label style="min-width:44px;">팔 길이</label>
         <input type="range" id="slSlider" min="0.1" max="0.2" value="0.15" step="0.001"
-               style="-webkit-appearance:none; appearance:none; flex:1; height:5px; border-radius:3px;
-                      background:linear-gradient(to right,#f59e0b,#ef4444); outline:none; cursor:pointer;">
-        <span id="slVal" style="color:#b45309; font-weight:700; min-width:48px; text-align:right; font-variant-numeric:tabular-nums;">0.150</span>
+               style="background:linear-gradient(to right,#f59e0b,#ef4444);">
+        <span id="slVal" style="color:#b45309;font-weight:700;min-width:48px;text-align:right;font-variant-numeric:tabular-nums;">0.150</span>
       </div>
-      <div style="display:flex; align-items:center; gap:16px;">
+      <div style="display:flex;align-items:center;gap:16px;">
         <label style="min-width:44px;">N</label>
         <input type="range" id="nSlider" min="200" max="300" value="200" step="1"
-               style="-webkit-appearance:none; appearance:none; flex:1; height:5px; border-radius:3px;
-                      background:linear-gradient(to right,#34d399,#059669); outline:none; cursor:pointer;">
-        <span id="nVal" style="color:#34d399; font-weight:700; min-width:48px; text-align:right; font-variant-numeric:tabular-nums;">0 N</span>
+               style="background:linear-gradient(to right,#34d399,#059669);">
+        <span id="nVal" style="color:#34d399;font-weight:700;min-width:48px;text-align:right;font-variant-numeric:tabular-nums;">0 N</span>
       </div>
     </div>
 
     <div id="const-panel">
+      <div class="const-title">재료 상수</div>
       <div class="const-row">
         <label>항복강도 (MPa)</label>
         <input type="number" class="const-input" id="scInput" value="550" step="1">
@@ -234,22 +193,10 @@
     </div>
 
     <div id="phi-panel">
-      <div class="row">
-        <label>φ</label>
-        <span id="phiVal">—</span>
-      </div>
-      <div class="row">
-        <label>비틀림각</label>
-        <span id="angleVal" style="color:#60a5fa; font-weight:700;">—</span>
-      </div>
-      <div class="row">
-        <label>σ (Pa)</label>
-        <span id="sigmaVal" style="color:#f87171; font-weight:700; font-size:14px;">—</span>
-      </div>
-      <div class="row">
-        <label>τ (Pa)</label>
-        <span id="tauVal" style="color:#c084fc; font-weight:700; font-size:14px;">—</span>
-      </div>
+      <div class="row"><label>φ</label><span id="phiVal">—</span></div>
+      <div class="row"><label>비틀림각</label><span id="angleVal">—</span></div>
+      <div class="row"><label>σ (Pa)</label><span id="sigmaVal">—</span></div>
+      <div class="row"><label>τ (Pa)</label><span id="tauVal">—</span></div>
     </div>
 
     <div id="mohr-wrap">
@@ -267,9 +214,18 @@
       <div id="vm-warn"  class="yield-warn">⚠ Von Mises 항복 (σ_vm &gt; S_c)</div>
       <div id="mss-warn" class="yield-warn">⚠ MSS 항복 (τ_max &gt; S_y/2)</div>
     </div>
-
   </div>
 
+  <script>
+    function toggleTheme() {
+      var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem('theme', next);
+      document.getElementById('ti').textContent = next === 'dark' ? '☀️' : '🌙';
+      if (window._themeChanged) window._themeChanged();
+    }
+    document.getElementById('ti').textContent = (document.documentElement.dataset.theme === 'dark') ? '☀️' : '🌙';
+  </script>
 
   <script type="importmap">
   {
@@ -284,7 +240,10 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    /* ─── Renderer ─── */
+    const isDark = () => document.documentElement.dataset.theme !== 'light';
+    const sceneBgDark  = new THREE.Color(0x0f1117);
+    const sceneBgLight = new THREE.Color(0xe8edf3);
+
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(innerWidth, innerHeight);
@@ -292,438 +251,261 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.prepend(renderer.domElement);
 
-    /* ─── Scene ─── */
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xe8edf3);
-    scene.fog = new THREE.FogExp2(0xe8edf3, 0.4);
+    scene.background = isDark() ? sceneBgDark : sceneBgLight;
+    scene.fog = new THREE.FogExp2(isDark() ? 0x0f1117 : 0xe8edf3, 0.4);
 
-    /* ─── Camera ─── */
     const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.001, 10);
     camera.position.set(0.4, 0.5, 0.9);
 
-    /* ─── Orbit Controls ─── */
     const orbit = new OrbitControls(camera, renderer.domElement);
+    orbit.enableDamping = true; orbit.dampingFactor = 0.07;
+    orbit.minDistance = 0.1; orbit.maxDistance = 2.5;
 
-    orbit.enableDamping = true;
-    orbit.dampingFactor = 0.07;
-    orbit.minDistance = 0.1;
-    orbit.maxDistance = 2.5;
-
-    /* ─── Lighting ─── */
     scene.add(new THREE.AmbientLight(0xffffff, 0.45));
-
     const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-    sun.position.set(0.7, 1.0, 0.5);
-    sun.castShadow = true;
-    sun.shadow.camera.near = 0.01;
-    sun.shadow.camera.far = 3;
-    [-8, 8].forEach(v => {
-      sun.shadow.camera.left = sun.shadow.camera.bottom = v < 0 ? v : undefined;
-      sun.shadow.camera.right = sun.shadow.camera.top = v > 0 ? v : undefined;
-    });
-    sun.shadow.camera.left   = -0.8;
-    sun.shadow.camera.right  =  0.8;
-    sun.shadow.camera.top    =  0.8;
-    sun.shadow.camera.bottom = -0.8;
+    sun.position.set(0.7, 1.0, 0.5); sun.castShadow = true;
+    sun.shadow.camera.near = 0.01; sun.shadow.camera.far = 3;
+    sun.shadow.camera.left=-0.8; sun.shadow.camera.right=0.8;
+    sun.shadow.camera.top=0.8; sun.shadow.camera.bottom=-0.8;
     sun.shadow.mapSize.setScalar(2048);
     scene.add(sun);
-
     const fillLight = new THREE.DirectionalLight(0x6699ff, 0.35);
-    fillLight.position.set(-0.5, 0.3, -0.5);
-    scene.add(fillLight);
+    fillLight.position.set(-0.5, 0.3, -0.5); scene.add(fillLight);
 
-    /* ════════════════════════════════════════
-       YZ 평면 벽면 (x = 0)
-    ════════════════════════════════════════ */
     const wallGeo = new THREE.PlaneGeometry(0.9, 0.9);
-    const wallMat = new THREE.MeshPhongMaterial({
-      color: 0xa8c4dc,
-      transparent: true,
-      opacity: 0.52,
-      side: THREE.DoubleSide,
-    });
+    const wallMat = new THREE.MeshPhongMaterial({ color:0xa8c4dc, transparent:true, opacity:0.52, side:THREE.DoubleSide });
     const wall = new THREE.Mesh(wallGeo, wallMat);
-    wall.rotation.y = Math.PI / 2;   // 법선 벡터 → X 방향 → YZ 평면이 됨
-    wall.receiveShadow = true;
-    scene.add(wall);
+    wall.rotation.y = Math.PI / 2; wall.receiveShadow = true; scene.add(wall);
 
-
-    /* ════════════════════════════════════════
-       좌표축
-    ════════════════════════════════════════ */
     const addAxis = (from, to, color) => {
-      const g = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(...from),
-        new THREE.Vector3(...to),
-      ]);
+      const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...from), new THREE.Vector3(...to)]);
       scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color })));
     };
-    addAxis([-0.55, 0, 0], [0.55, 0, 0], 0xef4444);  // X 축 – 빨강
-    addAxis([0, -0.45, 0], [0, 0.45, 0], 0x22c55e);  // Y 축 – 초록
-    addAxis([0, 0, -0.45], [0, 0, 0.45], 0x3b82f6);  // Z 축 – 파랑
+    addAxis([-0.55,0,0],[0.55,0,0],0xef4444);
+    addAxis([0,-0.45,0],[0,0.45,0],0x22c55e);
+    addAxis([0,0,-0.45],[0,0,0.45],0x3b82f6);
 
-    // 축 화살표
     const arrowMat = color => new THREE.MeshBasicMaterial({ color });
     const cone = (color, pos, rotZ) => {
-      const m = new THREE.Mesh(new THREE.ConeGeometry(0.007, 0.028, 8), arrowMat(color));
-      m.rotation.z = rotZ;
-      m.position.set(...pos);
-      scene.add(m);
+      const m = new THREE.Mesh(new THREE.ConeGeometry(0.007,0.028,8), arrowMat(color));
+      m.rotation.z = rotZ; m.position.set(...pos); scene.add(m);
     };
-    cone(0xef4444, [ 0.55, 0,    0   ],  Math.PI / 2);
-    cone(0x22c55e, [ 0,    0.45, 0   ],  0);
-    cone(0x3b82f6, [ 0,    0,    0.45], -Math.PI / 2);
+    cone(0xef4444,[0.55,0,0],Math.PI/2);
+    cone(0x22c55e,[0,0.45,0],0);
+    cone(0x3b82f6,[0,0,0.45],-Math.PI/2);
+    scene.children[scene.children.length-1].rotation.set(Math.PI/2,0,0);
+    scene.children[scene.children.length-1].position.set(0,0,0.55);
 
-    // +Z 화살표 수정
-    scene.children[scene.children.length - 1].rotation.set(Math.PI / 2, 0, 0);
-    scene.children[scene.children.length - 1].position.set(0, 0, 0.55);
+    const wrench = new THREE.Group(); scene.add(wrench);
+    const TW=0.01, TD=0.015, R=0.005;
+    let LL=0.14, SL=0.15;
+    const HX=0.02;
+    const metalMat = new THREE.MeshPhongMaterial({ color:0xb0bec5, specular:0xffffff, shininess:150 });
+    const darkMat  = new THREE.MeshPhongMaterial({ color:0x455a64, specular:0x8899aa, shininess:100 });
 
-    /* ════════════════════════════════════════
-       기역자(ㄱ) 렌치 — 세워서 부착
-         긴 팔: 원점(벽)에서 +X 방향 (LL) — 회전축과 일치
-         짧은 팔: 긴 팔 끝에서 +Y 방향 (SL) — 회전 시 원형 궤적
-    ════════════════════════════════════════ */
-    const wrench = new THREE.Group();
-    scene.add(wrench);
+    const lArm = new THREE.Mesh(new THREE.CylinderGeometry(R,R,LL,32), metalMat);
+    lArm.rotation.z = Math.PI/2; lArm.position.set(HX+LL/2,0,0); lArm.castShadow=true; wrench.add(lArm);
+    const sArm = new THREE.Mesh(new THREE.BoxGeometry(TW,SL,TD), darkMat);
+    sArm.position.set(HX+LL,SL/2,0); sArm.castShadow=true; wrench.add(sArm);
+    const wallHead = new THREE.Mesh(new THREE.CylinderGeometry(0.0075,0.0075,0.02,32), metalMat);
+    wallHead.rotation.z=Math.PI/2; wallHead.position.set(0.01,0,0); wallHead.castShadow=true; wrench.add(wallHead);
+    const hexJoint = new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,0.02,6), darkMat);
+    hexJoint.rotation.z=Math.PI/2; hexJoint.position.set(HX+LL,0,0); hexJoint.castShadow=true; wrench.add(hexJoint);
 
-    const TW = 0.01;    // 팔 단면 X
-    const TD = 0.015;   // 팔 단면 Z
-    const R  = 0.005;   // 축 반지름 (지름 0.01)
-    let   LL = 0.14;    // 축 길이 (X 방향)
-    let   SL = 0.15;    // 팔 길이 (Y 방향)
-    const HX = 0.02;    // 헤드 길이 (벽~축 간격)
-    const metalMat = new THREE.MeshPhongMaterial({
-      color: 0xb0bec5, specular: 0xffffff, shininess: 150,
-    });
-    const darkMat = new THREE.MeshPhongMaterial({
-      color: 0x455a64, specular: 0x8899aa, shininess: 100,
-    });
+    const nSlider  = document.getElementById('nSlider');
+    const nVal     = document.getElementById('nVal');
+    const phiVal   = document.getElementById('phiVal');
+    const angleVal = document.getElementById('angleVal');
+    const sigmaVal = document.getElementById('sigmaVal');
+    const tauVal   = document.getElementById('tauVal');
+    const scInput  = document.getElementById('scInput');
+    const gInput   = document.getElementById('gInput');
 
-    // 축: 원형 원통 — 원점 → +X 방향
-    const lArm = new THREE.Mesh(new THREE.CylinderGeometry(R, R, LL, 32), metalMat);
-    lArm.rotation.z = Math.PI / 2;
-    lArm.position.set(HX + LL / 2, 0, 0);
-    lArm.castShadow = true;
-    wrench.add(lArm);
-
-    // 팔: 사각 막대 — 긴 팔 끝에서 +Y 방향 (이전 모양 유지)
-    const sArm = new THREE.Mesh(new THREE.BoxGeometry(TW, SL, TD), darkMat);
-    sArm.position.set(HX + LL, SL / 2, 0);
-    sArm.castShadow = true;
-    wrench.add(sArm);
-
-    // 벽면 쪽 원통형 렌치 헤드 (지름 0.15, 길이 0.2 — 축 시작점과 벽 사이)
-    const wallHead = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.0075, 0.0075, 0.02, 32),
-      metalMat
-    );
-    wallHead.rotation.z = Math.PI / 2;
-    wallHead.position.set(0.01, 0, 0);   // x: 0 ~ 0.02 (헤드 끝 x=0)
-    wallHead.castShadow = true;
-    wrench.add(wallHead);
-
-    // 연결부: 육각기둥 — 축과 팔이 만나는 모서리 강화
-    const hexJoint = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.02, 6), darkMat);
-    hexJoint.rotation.z = Math.PI / 2;
-    hexJoint.position.set(HX + LL, 0, 0);
-    hexJoint.castShadow = true;
-    wrench.add(hexJoint);
-
-
-
-    /* ════════════════════════════════════════
-       φ 계산 + 회전 연동 (N 슬라이더)
-    ════════════════════════════════════════ */
-    const nSlider   = document.getElementById('nSlider');
-    const nVal      = document.getElementById('nVal');
-    const phiVal    = document.getElementById('phiVal');
-    const angleVal  = document.getElementById('angleVal');
-    const sigmaVal  = document.getElementById('sigmaVal');
-    const tauVal    = document.getElementById('tauVal');
-
-    function applyN() {
-      const N   = parseFloat(nSlider.value);
-      const d   = R * 2;
-      const T   = N * SL;
-      const L   = LL + 0.01;
-      const G   = (parseFloat(gInput.value) || 80) * 1e9;
-      const J   = Math.PI * Math.pow(d, 4) / 32;
-      const phi   = (T * L) / (G * J);
-      const M     = N * L;
-      const Z     = Math.PI * Math.pow(d, 3) / 32;
-      const sigma = M / Z;
-      const Zp    = Math.PI * Math.pow(d, 3) / 16;
-      const tau   = T / Zp;
-      const totalRad = phi + Math.PI / 2;
-      const totalDeg = THREE.MathUtils.radToDeg(totalRad);
-
-      wrench.rotation.x    = totalRad;
-      nVal.textContent     = si(N, 'N');
-      phiVal.textContent   = phi.toPrecision(4) + ' rad';
-      sigmaVal.textContent = si(sigma, 'Pa');
-      tauVal.textContent   = si(tau, 'Pa');
-      angleVal.textContent = THREE.MathUtils.radToDeg(phi).toFixed(4) + '°';
-      const C  = sigma / 2;
-      const Rm = Math.sqrt(C * C + tau * tau);
-      const s1 = C + Rm, s2 = C - Rm;
-      drawMohr(sigma, tau);
-      drawYield(s1, s2);
-    }
-
-    /* ─── SI 접두어 ─── */
     function si(val, unit) {
-      if (val === 0) return '0 ' + unit;
-      const abs = Math.abs(val);
-      const prefixes = [
-        [1e12, 'T'], [1e9, 'G'], [1e6, 'M'], [1e3, 'k'],
-        [1,    '' ], [1e-3,'m'], [1e-6,'μ'], [1e-9,'n'],
-      ];
-      for (const [factor, prefix] of prefixes) {
-        if (abs >= factor) {
-          const scaled = val / factor;
-          return scaled.toPrecision(4) + ' ' + prefix + unit;
-        }
+      if (val===0) return '0 '+unit;
+      const abs=Math.abs(val);
+      for (const [f,p] of [[1e12,'T'],[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'μ'],[1e-9,'n']]) {
+        if (abs>=f) return (val/f).toPrecision(4)+' '+p+unit;
       }
-      return val.toExponential(3) + ' ' + unit;
+      return val.toExponential(3)+' '+unit;
     }
 
-    /* ─── Mohr 원 ─── */
+    function axisColor()      { return isDark() ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'; }
+    function axisLabelColor() { return isDark() ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)'; }
+    function tickColor()      { return isDark() ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'; }
+    function tickLabelColor() { return isDark() ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'; }
+
     const mohrCanvas = document.getElementById('mohrCanvas');
     const mCtx = mohrCanvas.getContext('2d');
 
     function drawMohr(sigma, tau) {
-      const W = mohrCanvas.width, H = mohrCanvas.height;
-      const cx = W / 2, cy = H / 2;
-      mCtx.clearRect(0, 0, W, H);
+      const W=mohrCanvas.width, H=mohrCanvas.height;
+      const cx=W/2, cy=H/2;
+      mCtx.clearRect(0,0,W,H);
+      const C=sigma/2, Rm=Math.sqrt(C*C+tau*tau);
+      const s1=C+Rm, s2=C-Rm;
+      const maxVal=Math.max(Math.abs(s1),Math.abs(s2),Math.abs(tau),1);
+      const scale=(W*0.38)/maxVal;
 
-      const C  = sigma / 2;               // 원 중심 x
-      const R  = Math.sqrt(C * C + tau * tau); // 반지름
-      const s1 = C + R;                   // 최대 주응력
-      const s2 = C - R;                   // 최소 주응력
+      mCtx.strokeStyle=axisColor(); mCtx.lineWidth=1;
+      mCtx.beginPath(); mCtx.moveTo(10,cy); mCtx.lineTo(W-10,cy); mCtx.stroke();
+      mCtx.beginPath(); mCtx.moveTo(cx,10); mCtx.lineTo(cx,H-10); mCtx.stroke();
+      mCtx.fillStyle=axisLabelColor(); mCtx.font='11px system-ui';
+      mCtx.fillText('σ',W-16,cy-6); mCtx.fillText('τ',cx+6,18);
 
-      // 스케일: 반지름이 캔버스의 40% 차지
-      const maxVal = Math.max(Math.abs(s1), Math.abs(s2), Math.abs(tau), 1);
-      const scale  = (W * 0.38) / maxVal;
+      if (Rm===0) return;
+      const px2=cx+C*scale;
+      mCtx.strokeStyle='#38bdf8'; mCtx.lineWidth=1.5;
+      mCtx.beginPath(); mCtx.arc(px2,cy,Rm*scale,0,Math.PI*2); mCtx.stroke();
+      mCtx.fillStyle='#38bdf8';
+      mCtx.beginPath(); mCtx.arc(px2,cy,3,0,Math.PI*2); mCtx.fill();
 
-      // 배경
-      mCtx.fillStyle = 'rgba(0,0,0,0)';
-      mCtx.fillRect(0, 0, W, H);
+      const spx1=cx, spy1=cy-tau*scale;
+      const spx2=cx+sigma*scale, spy2=cy+tau*scale;
+      mCtx.fillStyle='#f87171';
+      mCtx.beginPath(); mCtx.arc(spx1,spy1,4,0,Math.PI*2); mCtx.fill();
+      mCtx.beginPath(); mCtx.arc(spx2,spy2,4,0,Math.PI*2); mCtx.fill();
+      mCtx.strokeStyle='rgba(248,113,113,0.4)'; mCtx.lineWidth=1;
+      mCtx.beginPath(); mCtx.moveTo(spx1,spy1); mCtx.lineTo(spx2,spy2); mCtx.stroke();
 
-      // σ 축 (수평)
-      mCtx.strokeStyle = 'rgba(0,0,0,0.2)';
-      mCtx.lineWidth = 1;
-      mCtx.beginPath(); mCtx.moveTo(10, cy); mCtx.lineTo(W - 10, cy); mCtx.stroke();
-      // τ 축 (수직)
-      mCtx.beginPath(); mCtx.moveTo(cx, 10); mCtx.lineTo(cx, H - 10); mCtx.stroke();
+      mCtx.font='10px system-ui';
+      mCtx.fillStyle='#059669'; mCtx.fillText('σ₁',cx+s1*scale+3,cy-5);
+      mCtx.fillStyle='#7c3aed'; mCtx.fillText('σ₂',cx+s2*scale-18,cy-5);
+      mCtx.fillStyle='#b45309'; mCtx.fillText('τmax',px2+4,cy-Rm*scale-4);
 
-      // 축 레이블
-      mCtx.fillStyle = 'rgba(0,0,0,0.55)';
-      mCtx.font = '11px system-ui';
-      mCtx.fillText('σ', W - 16, cy - 6);
-      mCtx.fillText('τ', cx + 6, 18);
-
-      if (R === 0) return;
-
-      // 원
-      const px = cx + C * scale;
-      mCtx.strokeStyle = '#38bdf8';
-      mCtx.lineWidth = 1.5;
-      mCtx.beginPath();
-      mCtx.arc(px, cy, R * scale, 0, Math.PI * 2);
-      mCtx.stroke();
-
-      // 중심 점
-      mCtx.fillStyle = '#38bdf8';
-      mCtx.beginPath(); mCtx.arc(px, cy, 3, 0, Math.PI * 2); mCtx.fill();
-
-      // 위쪽 점 (0, τ)
-      const spx1 = cx;
-      const spy1 = cy - tau * scale;
-      mCtx.fillStyle = '#f87171';
-      mCtx.beginPath(); mCtx.arc(spx1, spy1, 4, 0, Math.PI * 2); mCtx.fill();
-
-      // 아래쪽 점 (σ, -τ)
-      const spx2 = cx + sigma * scale;
-      const spy2 = cy + tau * scale;
-      mCtx.fillStyle = '#f87171';
-      mCtx.beginPath(); mCtx.arc(spx2, spy2, 4, 0, Math.PI * 2); mCtx.fill();
-
-      // 지름선
-      mCtx.strokeStyle = 'rgba(248,113,113,0.4)';
-      mCtx.lineWidth = 1;
-      mCtx.beginPath();
-      mCtx.moveTo(spx1, spy1);
-      mCtx.lineTo(spx2, spy2);
-      mCtx.stroke();
-
-      // σ₁, σ₂ 레이블 (원 위)
-      mCtx.font = '10px system-ui';
-      mCtx.fillStyle = '#059669';
-      mCtx.fillText('σ₁', cx + s1 * scale + 3, cy - 5);
-      mCtx.fillStyle = '#7c3aed';
-      mCtx.fillText('σ₂', cx + s2 * scale - 18, cy - 5);
-
-      // τ_max 레이블
-      mCtx.fillStyle = '#b45309';
-      mCtx.fillText('τmax', px + 4, cy - R * scale - 4);
-
-      // 최대 응력 수치 (SI 접두어)
-      const lineH = 15;
-      const rows = [
-        { label: '최대 주응력', val: s1, color: '#059669' },
-        { label: '최소 주응력', val: s2, color: '#7c3aed' },
-        { label: '최대 전단',   val: R,  color: '#b45309' },
-      ];
-      mCtx.font = 'bold 10px system-ui';
-      rows.forEach(({ label, val, color }, i) => {
-        const y = H - (rows.length - i - 1) * lineH - 6;
-        mCtx.fillStyle = color;
-        mCtx.fillText(label + ' = ' + si(val, 'Pa'), 6, y);
+      const lineH=15;
+      const rows=[{label:'최대 주응력',val:s1,color:'#059669'},{label:'최소 주응력',val:s2,color:'#7c3aed'},{label:'최대 전단',val:Rm,color:'#b45309'}];
+      mCtx.font='bold 10px system-ui';
+      rows.forEach(({label,val,color},i)=>{
+        const y=H-(rows.length-i-1)*lineH-6;
+        mCtx.fillStyle=color; mCtx.fillText(label+' = '+si(val,'Pa'),6,y);
       });
     }
 
-    /* ─── MSS & Von Mises 선도 ─── */
-    const yieldCanvas = document.getElementById('yieldCanvas');
-    const yCtx = yieldCanvas.getContext('2d');
-    const scInput = document.getElementById('scInput');
-    const gInput  = document.getElementById('gInput');
+    const yieldCanvas=document.getElementById('yieldCanvas');
+    const yCtx=yieldCanvas.getContext('2d');
 
-    function drawYield(s1, s2) {
-      const Sc = (parseFloat(scInput.value) || 550) * 1e6;
-      const W = yieldCanvas.width, H = yieldCanvas.height;
-      const cx = W / 2, cy = H / 2;
-      yCtx.clearRect(0, 0, W, H);
+    function drawYield(s1,s2) {
+      const Sc=(parseFloat(scInput.value)||550)*1e6;
+      const W=yieldCanvas.width, H=yieldCanvas.height;
+      const cx=W/2, cy=H/2, plotScale=W*0.42;
+      yCtx.clearRect(0,0,W,H);
 
-      const plotScale = W * 0.42;  // ±1 → pixels
+      yCtx.strokeStyle=axisColor(); yCtx.lineWidth=1;
+      yCtx.beginPath(); yCtx.moveTo(10,cy); yCtx.lineTo(W-10,cy); yCtx.stroke();
+      yCtx.beginPath(); yCtx.moveTo(cx,10); yCtx.lineTo(cx,H-10); yCtx.stroke();
+      yCtx.fillStyle=axisLabelColor(); yCtx.font='11px system-ui';
+      yCtx.fillText('σ₁/Sc',W-42,cy-6); yCtx.fillText('σ₂/Sc',cx+5,16);
 
-      // 축
-      yCtx.strokeStyle = 'rgba(0,0,0,0.2)';
-      yCtx.lineWidth = 1;
-      yCtx.beginPath(); yCtx.moveTo(10, cy); yCtx.lineTo(W-10, cy); yCtx.stroke();
-      yCtx.beginPath(); yCtx.moveTo(cx, 10); yCtx.lineTo(cx, H-10); yCtx.stroke();
-
-      // 축 레이블
-      yCtx.fillStyle = 'rgba(0,0,0,0.55)';
-      yCtx.font = '11px system-ui';
-      yCtx.fillText('σ₁/Sc', W-42, cy-6);
-      yCtx.fillText('σ₂/Sc', cx+5, 16);
-
-      // ±1 눈금
-      yCtx.strokeStyle = 'rgba(0,0,0,0.15)';
-      yCtx.lineWidth = 1;
-      yCtx.font = '9px system-ui';
-      [-1, 1].forEach(t => {
-        const px = cx + t * plotScale;
-        yCtx.beginPath(); yCtx.moveTo(px, cy-4); yCtx.lineTo(px, cy+4); yCtx.stroke();
-        yCtx.fillStyle = 'rgba(0,0,0,0.4)';
-        yCtx.fillText(t > 0 ? '1' : '-1', px - (t > 0 ? 3 : 7), cy + 14);
-
-        const py = cy - t * plotScale;
-        yCtx.beginPath(); yCtx.moveTo(cx-4, py); yCtx.lineTo(cx+4, py); yCtx.stroke();
-        yCtx.fillText(t > 0 ? '1' : '-1', cx + 6, py + 4);
+      yCtx.strokeStyle=tickColor(); yCtx.lineWidth=1; yCtx.font='9px system-ui';
+      [-1,1].forEach(t=>{
+        const ppx=cx+t*plotScale;
+        yCtx.beginPath(); yCtx.moveTo(ppx,cy-4); yCtx.lineTo(ppx,cy+4); yCtx.stroke();
+        yCtx.fillStyle=tickLabelColor();
+        yCtx.fillText(t>0?'1':'-1',ppx-(t>0?3:7),cy+14);
+        const ppy=cy-t*plotScale;
+        yCtx.beginPath(); yCtx.moveTo(cx-4,ppy); yCtx.lineTo(cx+4,ppy); yCtx.stroke();
+        yCtx.fillText(t>0?'1':'-1',cx+6,ppy+4);
       });
 
-      // Von Mises 타원 (normalized: n₁²-n₁n₂+n₂²=1)
-      yCtx.strokeStyle = '#38bdf8';
-      yCtx.lineWidth = 1.5;
-      yCtx.beginPath();
-      for (let i = 0; i <= 360; i++) {
-        const a = (i * Math.PI) / 180;
-        const n1 = Math.cos(a) + Math.sin(a) / Math.sqrt(3);
-        const n2 = (2 / Math.sqrt(3)) * Math.sin(a);
-        const x = cx + n1 * plotScale;
-        const y = cy - n2 * plotScale;
-        i === 0 ? yCtx.moveTo(x, y) : yCtx.lineTo(x, y);
+      yCtx.strokeStyle='#38bdf8'; yCtx.lineWidth=1.5; yCtx.beginPath();
+      for(let i=0;i<=360;i++){
+        const a=(i*Math.PI)/180;
+        const n1=Math.cos(a)+Math.sin(a)/Math.sqrt(3);
+        const n2=(2/Math.sqrt(3))*Math.sin(a);
+        const x=cx+n1*plotScale, y=cy-n2*plotScale;
+        i===0?yCtx.moveTo(x,y):yCtx.lineTo(x,y);
       }
-      yCtx.closePath();
-      yCtx.stroke();
+      yCtx.closePath(); yCtx.stroke();
 
-      // Tresca 육각형 (normalized MSS: ±1)
-      // 1·3사분면 꼭짓점 (±1,±1), 2·4사분면은 σ₁−σ₂=±1 대각선
-      const hex = [
-        [ 1,  0], [ 1,  1],
-        [ 0,  1], [-1,  0],
-        [-1, -1], [ 0, -1],
-      ];
-      yCtx.strokeStyle = '#f59e0b';
-      yCtx.lineWidth = 1.5;
-      yCtx.beginPath();
-      hex.forEach(([hx, hy], i) => {
-        const x = cx + hx * plotScale, y = cy - hy * plotScale;
-        i === 0 ? yCtx.moveTo(x, y) : yCtx.lineTo(x, y);
+      const hex=[[1,0],[1,1],[0,1],[-1,0],[-1,-1],[0,-1]];
+      yCtx.strokeStyle='#f59e0b'; yCtx.lineWidth=1.5; yCtx.beginPath();
+      hex.forEach(([hx,hy],i)=>{
+        const x=cx+hx*plotScale, y=cy-hy*plotScale;
+        i===0?yCtx.moveTo(x,y):yCtx.lineTo(x,y);
       });
-      yCtx.closePath();
-      yCtx.stroke();
+      yCtx.closePath(); yCtx.stroke();
 
-      // 현재 응력점 (normalized)
-      const n1 = s1 / Sc, n2 = s2 / Sc;
-      if (n1 !== 0 || n2 !== 0) {
-        const px = cx + n1 * plotScale, py = cy - n2 * plotScale;
-        yCtx.fillStyle = '#f87171';
-        yCtx.beginPath(); yCtx.arc(px, py, 5, 0, Math.PI * 2); yCtx.fill();
+      const n1=s1/Sc, n2=s2/Sc;
+      if(n1!==0||n2!==0){
+        const ppx=cx+n1*plotScale, ppy=cy-n2*plotScale;
+        yCtx.fillStyle='#f87171';
+        yCtx.beginPath(); yCtx.arc(ppx,ppy,5,0,Math.PI*2); yCtx.fill();
       }
 
-      // 등가응력 (normalized by Sc)
-      const svm = Math.sqrt(s1*s1 - s1*s2 + s2*s2) / Sc;
-      const str = Math.max(Math.abs(s1-s2), Math.abs(s1), Math.abs(s2)) / Sc;
-
-      document.getElementById('vmLeg').textContent  = 'VM/Sc: '  + svm.toPrecision(4);
-      document.getElementById('mssLeg').textContent = 'MSS/Sc: ' + str.toPrecision(4);
-      document.getElementById('vm-warn').style.display  = svm > 1 ? 'block' : 'none';
-      document.getElementById('mss-warn').style.display = str > 1 ? 'block' : 'none';
+      const svm=Math.sqrt(s1*s1-s1*s2+s2*s2)/Sc;
+      const str=Math.max(Math.abs(s1-s2),Math.abs(s1),Math.abs(s2))/Sc;
+      document.getElementById('vmLeg').textContent ='VM/Sc: '+svm.toPrecision(4);
+      document.getElementById('mssLeg').textContent='MSS/Sc: '+str.toPrecision(4);
+      document.getElementById('vm-warn').style.display =svm>1?'block':'none';
+      document.getElementById('mss-warn').style.display=str>1?'block':'none';
     }
 
-    scInput.addEventListener('input', () => applyN());
-    gInput.addEventListener('input',  () => applyN());
-    drawYield(0, 0);
+    function applyN() {
+      const N=parseFloat(nSlider.value);
+      const d=R*2, T=N*SL, L=LL+0.01;
+      const G=(parseFloat(gInput.value)||80)*1e9;
+      const J=Math.PI*Math.pow(d,4)/32;
+      const phi=(T*L)/(G*J);
+      const M=N*L, Z=Math.PI*Math.pow(d,3)/32;
+      const sigma=M/Z, Zp=Math.PI*Math.pow(d,3)/16, tau=T/Zp;
+      const totalRad=phi+Math.PI/2;
+      wrench.rotation.x=totalRad;
+      nVal.textContent=si(N,'N');
+      phiVal.textContent=phi.toPrecision(4)+' rad';
+      sigmaVal.textContent=si(sigma,'Pa');
+      tauVal.textContent=si(tau,'Pa');
+      angleVal.textContent=THREE.MathUtils.radToDeg(phi).toFixed(4)+'°';
+      const C=sigma/2, Rm=Math.sqrt(C*C+tau*tau);
+      drawMohr(sigma,tau);
+      drawYield(C+Rm, C-Rm);
+    }
 
-    drawMohr(0, 0);
+    scInput.addEventListener('input',applyN);
+    gInput.addEventListener('input',applyN);
+    nSlider.addEventListener('input',applyN);
 
-    nSlider.addEventListener('input', applyN);
+    const llSlider=document.getElementById('llSlider');
+    const llVal=document.getElementById('llVal');
+    const BASE_LL=LL;
+    llSlider.addEventListener('input',()=>{
+      const v=parseFloat(llSlider.value);
+      LL=v-0.01; llVal.textContent=v.toFixed(3);
+      lArm.scale.y=LL/BASE_LL; lArm.position.x=HX+LL/2;
+      sArm.position.x=HX+LL; hexJoint.position.x=HX+LL; applyN();
+    });
+
+    const slSlider=document.getElementById('slSlider');
+    const slVal=document.getElementById('slVal');
+    const BASE_SL=SL;
+    slSlider.addEventListener('input',()=>{
+      SL=parseFloat(slSlider.value); slVal.textContent=SL.toFixed(3);
+      sArm.scale.y=SL/BASE_SL; sArm.position.y=SL/2; applyN();
+    });
+
+    // Theme change callback
+    window._themeChanged = function() {
+      const dark=isDark();
+      scene.background.set(dark?0x0f1117:0xe8edf3);
+      scene.fog.color.setHex(dark?0x0f1117:0xe8edf3);
+      applyN();
+    };
+
+    drawMohr(0,0);
+    drawYield(0,0);
     applyN();
 
-    /* ─── 축 길이 슬라이더 ─── */
-    const llSlider = document.getElementById('llSlider');
-    const llVal    = document.getElementById('llVal');
-    const BASE_LL  = LL;
-
-    llSlider.addEventListener('input', () => {
-      const L_val = parseFloat(llSlider.value);
-      LL = L_val - 0.01;
-      llVal.textContent = L_val.toFixed(3);
-      lArm.scale.y = LL / BASE_LL;
-      lArm.position.x = HX + LL / 2;
-      sArm.position.x = HX + LL;
-      hexJoint.position.x = HX + LL;
-      applyN();
-    });
-
-    /* ─── 팔 길이 슬라이더 ─── */
-    const slSlider = document.getElementById('slSlider');
-    const slVal    = document.getElementById('slVal');
-    const BASE_SL  = SL;
-
-    slSlider.addEventListener('input', () => {
-      SL = parseFloat(slSlider.value);
-      slVal.textContent = SL.toFixed(3);
-      sArm.scale.y = SL / BASE_SL;
-      sArm.position.y = SL / 2;
-      applyN();
-    });
-
-    /* ════════════════════════════════════════
-       렌더 루프
-    ════════════════════════════════════════ */
-    (function animate() {
+    (function animate(){
       requestAnimationFrame(animate);
       orbit.update();
-      renderer.render(scene, camera);
+      renderer.render(scene,camera);
     })();
 
-    window.addEventListener('resize', () => {
-      camera.aspect = innerWidth / innerHeight;
+    window.addEventListener('resize',()=>{
+      camera.aspect=innerWidth/innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
+      renderer.setSize(innerWidth,innerHeight);
     });
   </script>
 </body>
