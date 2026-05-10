@@ -6,109 +6,422 @@
 <title>단순지지보 해석기</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
 body {
-  background:#0d1117;
-  color:#c9d1d9;
+  background:#f6f8fa; color:#24292f;
   font-family:'Segoe UI', system-ui, sans-serif;
+}
+
+/* ── 본문 섹션 ── */
+
+/* ── 히어로 ── */
+.hero {
+  display:flex; flex-direction:column;
+  justify-content:center; align-items:center;
+  padding:40px 24px; text-align:center;
+}
+.hero h1 {
+  font-size:2rem; font-weight:700; color:#0969da;
+  letter-spacing:-0.03em; margin-bottom:8px;
+}
+.hero .subtitle {
+  font-size:0.92rem; color:#57606a; line-height:1.65; max-width:520px;
+}
+
+/* 이론 섹션 */
+.theory {
+  max-width:780px; margin:0 auto; padding:28px 24px 20px;
+}
+.theory-block { margin-bottom:36px; }
+.theory-block h2 {
+  font-size:1.15rem; font-weight:700; color:#0969da;
+  margin-bottom:10px; padding-bottom:6px;
+  border-bottom:1px solid #d0d7de;
+}
+.theory-block h3 {
+  font-size:0.95rem; font-weight:600; color:#0550ae;
+  margin:14px 0 6px;
+}
+.theory-block p {
+  font-size:0.9rem; line-height:1.75; color:#57606a; margin-bottom:8px;
+}
+.theory-block ul {
+  padding-left:18px; margin-bottom:8px;
+}
+.theory-block ul li {
+  font-size:0.9rem; line-height:1.75; color:#57606a; margin-bottom:2px;
+}
+.fbox {
+  display:flex; flex-wrap:wrap; gap:10px; margin:12px 0;
+}
+.fcard {
+  background:#fff; border:1px solid #d0d7de; border-radius:8px;
+  padding:10px 16px; flex:1; min-width:150px;
+}
+.fcard .label { font-size:0.72rem; color:#57606a; margin-bottom:6px; }
+.fcard .eq { font-size:1rem; color:#0550ae; font-weight:600; }
+.fcard .sub { font-size:0.75rem; color:#57606a; margin-top:4px; }
+.sign-table {
+  width:100%; border-collapse:collapse; margin:16px 0; font-size:0.87rem;
+}
+.sign-table th {
+  background:#eaf0f8; color:#0969da; padding:8px 12px;
+  border:1px solid #d0d7de; text-align:center; font-weight:600;
+}
+.sign-table td {
+  padding:8px 12px; border:1px solid #d0d7de;
+  color:#57606a; text-align:center;
+}
+.sign-table tr:nth-child(even) td { background:#f6f8fa; }
+.tag-v  { color:#0969da; font-weight:600; }
+.tag-m  { color:#8250df; font-weight:600; }
+.tag-ra { color:#1a7f37; font-weight:600; }
+.note {
+  background:#dff0ff; border-left:3px solid #0969da;
+  border-radius:0 8px 8px 0; padding:10px 14px;
+  font-size:0.83rem; color:#57606a; margin:10px 0;
+}
+.divider {
+  width:80px; height:2px;
+  background:linear-gradient(90deg,transparent,#d0d7de,transparent);
+  margin:0 auto 32px;
+}
+.example-section {
+  min-height:100vh; display:flex; flex-direction:column;
+  justify-content:center; align-items:center;
+  padding:60px 24px 40px; text-align:center;
+}
+.example-inner { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+.scroll-cta { text-align:center; padding:20px 0 32px; }
+.reveal-btn {
+  background:#fff; border:1px solid #d0d7de; border-radius:10px;
+  color:#0969da; font-family:inherit; font-size:0.9rem;
+  padding:12px 28px; cursor:pointer; display:inline-flex;
+  flex-direction:column; align-items:center; gap:8px;
+  transition:border-color .2s, color .2s;
+  animation:bounce 2s ease-in-out infinite;
+}
+.reveal-btn:hover { border-color:#0969da; color:#0550ae; }
+.reveal-btn span { font-weight:700; font-size:1rem; }
+.reveal-btn svg { width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:2; }
+.scroll-cta a {
+  display:inline-flex; flex-direction:column; align-items:center; gap:10px;
+  color:#57606a; font-size:0.85rem; text-decoration:none;
+  animation:bounce 2s ease-in-out infinite;
+}
+.scroll-cta a span { color:#0969da; font-weight:600; font-size:0.95rem; }
+.scroll-cta svg { width:28px; height:28px; stroke:#0969da; fill:none; stroke-width:2; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+
+/* ── 계산기 섹션 ── */
+.calc-section {
   display:flex; flex-direction:column; align-items:center;
-  padding:20px 16px; min-height:100vh;
+  padding:20px 16px 32px;
 }
-h1 {
-  color:#58a6ff; font-size:1.35rem; margin-bottom:16px;
-  letter-spacing:-0.02em; font-weight:600;
+.calc-section h2 {
+  color:#0969da; font-size:1.1rem; margin-bottom:14px;
+  font-weight:600; letter-spacing:-0.02em;
 }
-#cv {
-  background:#161b22; border:1px solid #30363d; border-radius:12px;
-  cursor:default; max-width:100%; touch-action:none;
-}
-.info {
-  display:flex; gap:10px; flex-wrap:wrap;
-  justify-content:center; margin-top:14px;
-}
+#cv { background:#fff; border:1px solid #d0d7de; border-radius:12px; cursor:default; max-width:100%; touch-action:none; }
+.info { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
 .chip {
-  background:#21262d; border:1px solid #30363d; border-radius:6px;
-  padding:5px 14px; font-size:0.82rem; color:#79c0ff; min-width:100px;
-  text-align:center;
+  background:#fff; border:1px solid #d0d7de; border-radius:6px;
+  padding:5px 14px; font-size:0.82rem; color:#0969da; min-width:110px;
+  text-align:center; display:flex; align-items:center; gap:4px;
 }
-.hint { margin-top:10px; font-size:0.78rem; color:#6e7681; text-align:center; }
+.chip label { color:#57606a; white-space:nowrap; }
+.chip input {
+  background:transparent; border:none; outline:none;
+  color:#0969da; font-size:0.82rem; font-family:inherit;
+  width:68px; text-align:right; cursor:text;
+}
+.chip input:focus { color:#58a6ff; border-bottom:1px solid #58a6ff; }
+.chip.ro { color:#57606a; }
+.chip input:focus { color:#0550ae; border-bottom:1px solid #0969da; }
+.chip.ro { color:#57606a; }
+.chip.ro span { color:#57606a; }
+.hint { margin-top:10px; font-size:0.78rem; color:#57606a; text-align:center; }
 </style>
 </head>
 <body>
-<h1>단순지지보 — 전단력 · 굽힘모멘트 선도</h1>
-<canvas id="cv"></canvas>
-<div class="info">
-  <div class="chip" id="c-pos">a = —</div>
-  <div class="chip" id="c-P">P = —</div>
-  <div class="chip" id="c-RA">R_A = —</div>
-  <div class="chip" id="c-RB">R_B = —</div>
-  <div class="chip" id="c-Mmax">M_max = —</div>
+
+<!-- ── 히어로 ── -->
+<section class="hero">
+  <h1>전단력 · 굽힘모멘트 선도 계산</h1>
+  <p class="subtitle">
+    단순지지보에 집중하중을 가했을 때 발생하는<br>
+    내력(전단력·굽힘모멘트)을 이론과 인터랙티브 계산기로 학습합니다.
+  </p>
+</section>
+
+<!-- ── 본문 이론 ── -->
+<div class="theory">
+
+  <!-- 1. 부호규약 -->
+  <div class="theory-block">
+    <h2>1. 하중과 모멘트의 부호규약</h2>
+    <p>
+      구조 해석에서 힘과 모멘트의 방향을 일관되게 정의하기 위해 부호규약을 사용합니다.
+      보의 단면을 가상으로 절단한 뒤, 절단면 좌측 부분에 작용하는 내력을 기준으로 정의합니다.
+    </p>
+    <h3>하중 (외력)</h3>
+    <table class="sign-table">
+      <tr><th>방향</th><th>부호</th></tr>
+      <tr><td>아래쪽 (중력 방향)</td><td style="color:#fc8181">양(+)</td></tr>
+      <tr><td>위쪽</td><td style="color:#57606a">음(−)</td></tr>
+    </table>
+    <h3>전단력 (Shear Force, V)</h3>
+    <p>
+      절단면 좌측에서 <strong style="color:#24292f">위쪽</strong>으로 작용하는 수직 합력을 양(+)으로 정의합니다.
+      이는 절단면 우측에서 아래쪽으로 작용하는 힘과 쌍을 이룹니다.
+    </p>
+    <table class="sign-table">
+      <tr><th>절단면 좌측</th><th>절단면 우측</th><th>부호</th></tr>
+      <tr><td>↑ 위쪽</td><td>↓ 아래쪽</td><td class="tag-v">양(+)</td></tr>
+      <tr><td>↓ 아래쪽</td><td>↑ 위쪽</td><td style="color:#953800">음(−)</td></tr>
+    </table>
+    <h3>굽힘모멘트 (Bending Moment, M)</h3>
+    <p>
+      보가 <strong style="color:#24292f">아래로 볼록(새깅, Sagging)</strong>하게 휘는 경우를 양(+)으로 정의합니다.
+      이 상태에서 보의 아랫면은 인장, 윗면은 압축을 받습니다.
+    </p>
+    <table class="sign-table">
+      <tr><th>변형 형태</th><th>부호</th><th>아랫면</th><th>윗면</th></tr>
+      <tr><td>아래로 볼록 (새깅, Sagging)</td><td class="tag-m">양(+)</td><td>인장</td><td>압축</td></tr>
+      <tr><td>위로 볼록 (호깅, Hogging)</td><td style="color:#953800">음(−)</td><td>압축</td><td>인장</td></tr>
+    </table>
+    <div class="note">
+      단순지지보에 아래 방향 집중하중이 작용하면 보는 전 구간에서 새깅 변형이 발생하므로
+      굽힘모멘트는 항상 <strong style="color:#24292f">양(+)</strong>의 값을 가집니다.
+    </div>
+  </div>
+
+  <!-- 2. 자유물체도 -->
+  <div class="theory-block">
+    <h2>2. 자유물체도 (Free Body Diagram, FBD)</h2>
+    <p>
+      자유물체도는 구조물의 일부를 가상으로 분리하여 그 부분에 작용하는
+      <strong style="color:#24292f">모든 외력과 내력을 명시적으로 표시</strong>한 그림입니다.
+      전단력과 굽힘모멘트는 이 자유물체도에 대한 평형방정식을 풀어 구합니다.
+    </p>
+    <h3>단순지지보에서 FBD 작성 절차</h3>
+    <ul>
+      <li><strong style="color:#24292f">① 반력 계산</strong> — 전체 보에 대한 평형방정식으로 R_A, R_B를 구합니다.</li>
+      <li><strong style="color:#24292f">② 단면 절단</strong> — 내력을 구하고 싶은 위치 x에서 보를 가상으로 절단합니다.</li>
+      <li><strong style="color:#24292f">③ 내력 표시</strong> — 절단면에 전단력 V와 굽힘모멘트 M을 부호규약에 따라 양의 방향으로 표시합니다.</li>
+      <li><strong style="color:#24292f">④ 평형 적용</strong> — 절단된 부분(좌측 또는 우측)에 ΣF_y = 0, ΣM = 0을 적용하여 V와 M을 계산합니다.</li>
+    </ul>
+    <h3>집중하중 P, 위치 a에서의 계산 예 (좌측 부분, x &lt; a)</h3>
+    <div class="fbox">
+      <div class="fcard">
+        <div class="label">반력 계산</div>
+        <div class="eq tag-ra">R_A = P·(L−a)/L</div>
+        <div class="sub">R_B = P·a/L</div>
+      </div>
+      <div class="fcard">
+        <div class="label">ΣF_y = 0 (좌측)</div>
+        <div class="eq tag-v">V = R_A</div>
+        <div class="sub">0 ≤ x &lt; a 구간</div>
+      </div>
+      <div class="fcard">
+        <div class="label">ΣM_절단점 = 0</div>
+        <div class="eq tag-m">M = R_A · x</div>
+        <div class="sub">0 ≤ x &lt; a 구간</div>
+      </div>
+    </div>
+    <h3>하중 우측 구간 (x &gt; a)</h3>
+    <div class="fbox">
+      <div class="fcard">
+        <div class="label">ΣF_y = 0 (좌측)</div>
+        <div class="eq" style="color:#953800">V = R_A − P = −R_B</div>
+        <div class="sub">a &lt; x ≤ L 구간</div>
+      </div>
+      <div class="fcard">
+        <div class="label">ΣM_절단점 = 0</div>
+        <div class="eq tag-m">M = R_A·x − P(x−a)</div>
+        <div class="sub">= R_B·(L−x)</div>
+      </div>
+    </div>
+    <div class="note">
+      좌측 부분과 우측 부분 중 <strong style="color:#24292f">힘이 더 적게 작용하는 쪽</strong>을 선택하면
+      계산이 간단해집니다. 두 쪽의 결과는 항상 일치해야 합니다.
+    </div>
+  </div>
+
+  <!-- 3. SFD–BMD 관계 -->
+  <div class="theory-block">
+    <h2>3. 전단력과 굽힘모멘트의 관계</h2>
+    <p>
+      분포하중 w(x), 전단력 V(x), 굽힘모멘트 M(x) 사이에는
+      미적분을 통해 유도된 다음의 관계가 성립합니다.
+    </p>
+    <div class="fbox">
+      <div class="fcard">
+        <div class="label">하중 → 전단력</div>
+        <div class="eq tag-v">dV/dx = −w(x)</div>
+        <div class="sub">분포하중의 크기 = V 기울기의 음수</div>
+      </div>
+      <div class="fcard">
+        <div class="label">전단력 → 굽힘모멘트</div>
+        <div class="eq tag-m">dM/dx = V(x)</div>
+        <div class="sub">전단력의 크기 = M 기울기</div>
+      </div>
+      <div class="fcard">
+        <div class="label">통합 관계</div>
+        <div class="eq" style="color:#57606a">d²M/dx² = −w(x)</div>
+        <div class="sub">분포하중은 M의 곡률 결정</div>
+      </div>
+    </div>
+    <h3>적분 형태 — 면적법칙</h3>
+    <div class="fbox">
+      <div class="fcard">
+        <div class="label">전단력 변화량</div>
+        <div class="eq tag-v">V_B − V_A = −∫w dx</div>
+        <div class="sub">A→B 구간 분포하중의 면적</div>
+      </div>
+      <div class="fcard">
+        <div class="label">모멘트 변화량</div>
+        <div class="eq tag-m">M_B − M_A = ∫V dx</div>
+        <div class="sub">A→B 구간 SFD의 면적</div>
+      </div>
+    </div>
+    <h3>중요 성질</h3>
+    <ul>
+      <li><strong style="color:#24292f">V = 0인 점</strong>에서 M은 극값(최대 또는 최소)을 가집니다.</li>
+      <li>집중하중 P가 작용하는 점에서 V는 P만큼 <strong style="color:#24292f">불연속 도약</strong>합니다.</li>
+      <li>집중모멘트 M₀가 작용하는 점에서 M이 M₀만큼 불연속 도약합니다.</li>
+      <li>분포하중이 없는 구간: V = 상수 → M은 <strong style="color:#24292f">직선</strong></li>
+      <li>등분포하중(w = const) 구간: V = 1차 함수 → M은 <strong style="color:#24292f">2차 포물선</strong></li>
+    </ul>
+    <div class="note">
+      SFD의 어떤 구간의 <strong style="color:#24292f">넓이</strong>를 계산하면,
+      그 구간의 <strong style="color:#24292f">굽힘모멘트 변화량</strong>을 직접 구할 수 있습니다.
+      이를 이용하면 적분 없이 BMD를 빠르게 작성할 수 있습니다.
+    </div>
+  </div>
+
 </div>
-<div class="hint">● 원형 핸들 드래그 → 좌우: 하중 위치 / 상하: 하중 크기 조절</div>
+
+<div class="divider"></div>
+
+<!-- ── 예제 전체화면 ── -->
+<section class="example-section">
+  <div class="example-inner">
+    <div style="font-size:0.75rem; color:#57606a; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:14px;">예제</div>
+    <h2 style="color:#0969da; font-size:1.3rem; font-weight:700; margin-bottom:24px;">반력과 굽힘모멘트 최대값 구하기</h2>
+    <div class="note" style="border-color:#fbbf24; font-size:0.95rem; line-height:1.9; color:#24292f; max-width:560px; text-align:left;">
+      길이 <strong>L = 10 m</strong>인 단순지지보의<br>
+      <strong>x = 2 m</strong> 지점에 <strong>100 N</strong>,<br>
+      <strong>x = 5 m</strong> 지점에 <strong>50 N</strong>의 집중하중이 아래 방향으로 작용한다.<br><br>
+      반력 R_A, R_B 와 굽힘모멘트의 최대값 M_max 및<br>그 발생 위치를 구하시오.
+    </div>
+  </div>
+  <div class="scroll-cta">
+    <button class="reveal-btn" onclick="revealCalculator()">
+      <span>풀이 보기</span>
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- ── 계산기 ── -->
+<section class="calc-section" id="calculator" style="display:none">
+  <h2>전단력 · 굽힘모멘트 선도 계산</h2>
+  <canvas id="cv"></canvas>
+  <div class="info">
+    <div class="chip"><label id="lbl-a">a =</label><input id="c-pos" type="number" step="0.01" min="0" max="10"><label>m</label></div>
+    <div class="chip"><label id="lbl-P">P =</label><input id="c-P"   type="number" step="1"    min="0" max="100"><label>N</label></div>
+    <div class="chip ro"><label>M_max =</label><span id="c-Mmax">—</span><label>N·m</label></div>
+    <div class="chip ro"><label>M_max 위치 =</label><span id="c-MmaxX">—</span><label>m</label></div>
+  </div>
+  <div class="hint">보 클릭: 하중 추가 &nbsp;|&nbsp; 핸들 드래그: 위치·크기 조절 &nbsp;|&nbsp; P = 0 까지 내리면 삭제</div>
+</section>
 
 <script>
-const cv  = document.getElementById('cv');
+function revealCalculator() {
+  const sec = document.getElementById('calculator');
+  sec.style.display = 'flex';
+  sec.scrollIntoView({ behavior: 'smooth' });
+}
+
 const ctx = cv.getContext('2d');
 const DPR = Math.min(window.devicePixelRatio || 1, 2);
-const CW  = 820, CH = 700;
+const CW = 820, CH = 780;
 cv.width  = CW * DPR; cv.height = CH * DPR;
 cv.style.width = CW + 'px'; cv.style.height = CH + 'px';
 ctx.scale(DPR, DPR);
 
-// ── Layout constants ──────────────────────────────────
+// ── Layout ────────────────────────────────────────────
 const BX0 = 120, BX1 = 700, BL = BX1 - BX0;
 const BY  = 205, BH = 22;
-const TIP_Y = BY - BH / 2;          // arrow tip y (top of beam)
-const Lm    = 10;                    // physical beam length (m)
-const pxPm  = BL / Lm;              // pixels per metre
+const TIP_Y = BY - BH / 2;
+const Lm   = 10;
+const pxPm = BL / Lm;
 
-const SFD_CY = 430, BMD_CY = 610, DH = 75;
-const P_MAX  = 100;                  // max load (kN)
+const SFD_CY = 450, BMD_CY = 660, DH = 72;
+const P_MAX  = 100;
+
+const COLORS = ['#cf222e','#bf8700','#1a7f37','#0969da','#8250df','#bf3989'];
 
 // ── State ─────────────────────────────────────────────
-let loadX = BX0 + BL / 2;           // load x (px, absolute)
-let P     = 55;                      // load magnitude (kN)
-let drag  = false;
+let loads     = [
+  { x: BX0 + 2 * pxPm, P: 100 },
+  { x: BX0 + 5 * pxPm, P: 50  }
+];
+let activeIdx = 0;
+let dragIdx   = -1;
 
-// ── Physics helpers ──────────────────────────────────
-function derived() {
-  const a_px = loadX - BX0;
-  const a_m  = a_px / pxPm;
-  const b_m  = Lm - a_m;
-  const RA   = P * b_m / Lm;
-  const RB   = P * a_m / Lm;
-  const Mmax = RA * a_m;
-  return { a_px, a_m, b_m, RA, RB, Mmax };
+// ── Physics ───────────────────────────────────────────
+function computeRA() {
+  return loads.reduce((s, l) => s + l.P * (Lm - (l.x - BX0) / pxPm) / Lm, 0);
 }
 
-function V_at(x_abs) {
-  const { a_px, RA, RB } = derived();
-  return (x_abs - BX0) < a_px ? RA : -RB;
-}
-
-function M_at(x_abs) {
-  const { a_px, a_m, RA } = derived();
+function M_at(x_abs, RA) {
   const xi_m = (x_abs - BX0) / pxPm;
-  const ai_m = a_m;
-  if (x_abs - BX0 <= a_px) return RA * xi_m;
-  return RA * xi_m - P * (xi_m - ai_m);
+  let m = RA * xi_m;
+  loads.forEach(l => {
+    if (l.x < x_abs) m -= l.P * (xi_m - (l.x - BX0) / pxPm);
+  });
+  return m;
 }
 
-// ── Handle position ──────────────────────────────────
-function arrowLen() { return (P / P_MAX) * 80 + 25; }
-function handleY()  { return TIP_Y - arrowLen(); }
-function isOnHandle(mx, my) {
-  return Math.hypot(mx - loadX, my - handleY()) < 14;
+function derived() {
+  const RA = computeRA();
+  const RB = loads.reduce((s, l) => s + l.P * (l.x - BX0) / pxPm / Lm, 0);
+
+  let Mmax = 0, MmaxX = BX0;
+  const xs = [...loads.map(l => l.x)];
+  for (let i = 0; i <= 300; i++) xs.push(BX0 + i / 300 * BL);
+  xs.forEach(x => {
+    const m = M_at(x, RA);
+    if (m > Mmax) { Mmax = m; MmaxX = x; }
+  });
+  return { RA, RB, Mmax, MmaxX };
 }
 
-// ── Main draw ────────────────────────────────────────
+// ── Handle helpers ────────────────────────────────────
+function handleY(l) { return TIP_Y - ((l.P / P_MAX) * 80 + 25); }
+
+function findHandle(mx, my) {
+  for (let i = loads.length - 1; i >= 0; i--) {
+    if (Math.hypot(mx - loads[i].x, my - handleY(loads[i])) < 14) return i;
+  }
+  return -1;
+}
+
+function isOnBeam(mx, my) {
+  return mx >= BX0 && mx <= BX1 && my >= BY - BH / 2 - 4 && my <= BY + BH / 2 + 4;
+}
+
+// ── Main draw ─────────────────────────────────────────
 function draw() {
   ctx.clearRect(0, 0, CW, CH);
   const d = derived();
   drawGrid();
   drawBeam();
   drawSupports();
-  drawVertDashed(d);
-  drawLoadArrow();
+  drawVertDasheds();
+  drawLoadArrows();
   drawReactions(d);
   drawSFD(d);
   drawBMD(d);
@@ -116,321 +429,293 @@ function draw() {
   updateChips(d);
 }
 
-// ── Grid (light background lines) ────────────────────
+// ── Grid ──────────────────────────────────────────────
 function drawGrid() {
   ctx.save();
-  ctx.strokeStyle = '#21262d';
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
   for (let i = 0; i <= 4; i++) {
     const x = BX0 + (i / 4) * BL;
-    ctx.beginPath();
-    ctx.moveTo(x, 50); ctx.lineTo(x, CH - 20);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, 50); ctx.lineTo(x, CH - 20); ctx.stroke();
   }
   ctx.restore();
 }
 
-// ── Beam ─────────────────────────────────────────────
+// ── Beam ──────────────────────────────────────────────
 function drawBeam() {
   const g = ctx.createLinearGradient(0, BY - BH/2, 0, BY + BH/2);
-  g.addColorStop(0,   '#566985');
-  g.addColorStop(0.4, '#7a9cc0');
-  g.addColorStop(1,   '#2d3a4a');
+  g.addColorStop(0, '#90a8c0'); g.addColorStop(0.4, '#b8cfe0'); g.addColorStop(1, '#6a8faa');
   ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.rect(BX0, BY - BH/2, BL, BH);
-  ctx.fill();
-  ctx.strokeStyle = '#a0bbd0';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  // Centre line
+  ctx.beginPath(); ctx.rect(BX0, BY - BH/2, BL, BH); ctx.fill();
+  ctx.strokeStyle = '#6a8faa'; ctx.lineWidth = 1; ctx.stroke();
   ctx.save();
-  ctx.strokeStyle = '#3a4f60';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([8, 6]);
-  ctx.beginPath();
-  ctx.moveTo(BX0, BY); ctx.lineTo(BX1, BY);
-  ctx.stroke();
+  ctx.strokeStyle = '#b8cfe0'; ctx.lineWidth = 1; ctx.setLineDash([8, 6]);
+  ctx.beginPath(); ctx.moveTo(BX0, BY); ctx.lineTo(BX1, BY); ctx.stroke();
   ctx.restore();
 }
 
-// ── Supports ─────────────────────────────────────────
-function drawSupports() {
-  drawPin(BX0, BY + BH/2);
-  drawRoller(BX1, BY + BH/2);
-}
+// ── Supports ──────────────────────────────────────────
+function drawSupports() { drawPin(BX0, BY + BH/2); drawRoller(BX1, BY + BH/2); }
 
 function drawPin(x, y) {
   const s = 16;
-  ctx.fillStyle = '#4a5e70'; ctx.strokeStyle = '#90a8c0'; ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(x, y); ctx.lineTo(x - s, y + s); ctx.lineTo(x + s, y + s);
+  ctx.fillStyle = '#90a8c0'; ctx.strokeStyle = '#4a6fa5'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x-s, y+s); ctx.lineTo(x+s, y+s);
   ctx.closePath(); ctx.fill(); ctx.stroke();
   drawGround(x, y + s);
-  ctx.fillStyle = '#58a6ff'; ctx.font = 'bold 11px Segoe UI';
-  ctx.textAlign = 'center';
+  ctx.fillStyle = '#0969da'; ctx.font = 'bold 11px Segoe UI'; ctx.textAlign = 'center';
   ctx.fillText('A', x, y + s + 22);
 }
 
 function drawRoller(x, y) {
   const s = 16;
-  ctx.fillStyle = '#4a5e70'; ctx.strokeStyle = '#90a8c0'; ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(x, y); ctx.lineTo(x - s, y + s); ctx.lineTo(x + s, y + s);
+  ctx.fillStyle = '#90a8c0'; ctx.strokeStyle = '#4a6fa5'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x-s, y+s); ctx.lineTo(x+s, y+s);
   ctx.closePath(); ctx.fill(); ctx.stroke();
-  [x - 8, x + 8].forEach(cx => {
-    ctx.beginPath(); ctx.arc(cx, y + s + 6, 5, 0, Math.PI * 2);
-    ctx.fill(); ctx.stroke();
+  [x-8, x+8].forEach(cx => {
+    ctx.beginPath(); ctx.arc(cx, y+s+6, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
   });
   drawGround(x, y + s + 12);
-  ctx.fillStyle = '#58a6ff'; ctx.font = 'bold 11px Segoe UI';
-  ctx.textAlign = 'center';
+  ctx.fillStyle = '#0969da'; ctx.font = 'bold 11px Segoe UI'; ctx.textAlign = 'center';
   ctx.fillText('B', x, y + s + 28);
 }
 
 function drawGround(x, y) {
-  ctx.strokeStyle = '#3d5060'; ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(x - 22, y); ctx.lineTo(x + 22, y); ctx.stroke();
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x-22, y); ctx.lineTo(x+22, y); ctx.stroke();
   for (let i = -3; i <= 3; i++) {
-    ctx.beginPath();
-    ctx.moveTo(x + i * 7, y);
-    ctx.lineTo(x + i * 7 - 5, y + 7);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+i*7, y); ctx.lineTo(x+i*7-5, y+7); ctx.stroke();
   }
 }
 
-// ── Vertical dashed line at load ─────────────────────
-function drawVertDashed({ a_px }) {
-  const lx = BX0 + a_px;
+// ── Vertical dashed lines ─────────────────────────────
+function drawVertDasheds() {
   ctx.save();
-  ctx.strokeStyle = '#fc816150';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([5, 4]);
-  ctx.beginPath();
-  ctx.moveTo(lx, handleY() + 10);
-  ctx.lineTo(lx, BMD_CY + DH + 5);
-  ctx.stroke();
+  ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
+  loads.forEach((l, i) => {
+    ctx.strokeStyle = COLORS[i % COLORS.length] + '44';
+    ctx.beginPath();
+    ctx.moveTo(l.x, handleY(l) + 10);
+    ctx.lineTo(l.x, BMD_CY + DH + 5);
+    ctx.stroke();
+  });
   ctx.restore();
 }
 
-// ── Load arrow ────────────────────────────────────────
-function drawLoadArrow() {
-  const hy   = handleY();
-  const alen = arrowLen();
+// ── Load arrows ───────────────────────────────────────
+function drawLoadArrows() {
+  loads.forEach((l, i) => {
+    const color    = COLORS[i % COLORS.length];
+    const hy       = handleY(l);
+    const isActive = i === activeIdx;
 
-  // Dimension labels (a, b)
-  const { a_m, b_m } = derived();
-  ctx.fillStyle = '#8b949e'; ctx.font = '10px Segoe UI';
-  ctx.textAlign = 'center';
-  if (a_m > 0.3) ctx.fillText(`a = ${a_m.toFixed(2)} m`, BX0 + (a_m / 2) * pxPm, TIP_Y - 6);
-  if (b_m > 0.3) ctx.fillText(`b = ${b_m.toFixed(2)} m`, loadX + (b_m / 2) * pxPm, TIP_Y - 6);
+    // Stem
+    ctx.strokeStyle = color; ctx.lineWidth = isActive ? 3 : 2;
+    ctx.beginPath(); ctx.moveTo(l.x, hy); ctx.lineTo(l.x, TIP_Y - 15); ctx.stroke();
 
-  // Stem
-  ctx.strokeStyle = '#fc8181'; ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(loadX, hy); ctx.lineTo(loadX, TIP_Y - 16);
-  ctx.stroke();
+    // Arrowhead
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(l.x, TIP_Y);
+    ctx.lineTo(l.x - 9, TIP_Y - 18); ctx.lineTo(l.x + 9, TIP_Y - 18);
+    ctx.closePath(); ctx.fill();
 
-  // Arrowhead
-  ctx.fillStyle = '#fc8181';
-  ctx.beginPath();
-  ctx.moveTo(loadX, TIP_Y);
-  ctx.lineTo(loadX - 9, TIP_Y - 18);
-  ctx.lineTo(loadX + 9, TIP_Y - 18);
-  ctx.closePath(); ctx.fill();
+    // Label
+    const tag = loads.length > 1 ? `P${i+1}` : 'P';
+    ctx.fillStyle = color;
+    ctx.font = isActive ? 'bold 12px Segoe UI' : '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${tag} = ${l.P.toFixed(0)} N`, l.x, hy - 14);
 
-  // Label
-  ctx.fillStyle = '#fca5a5'; ctx.font = 'bold 13px Segoe UI';
-  ctx.textAlign = 'center';
-  ctx.fillText(`P = ${P.toFixed(0)} kN`, loadX, hy - 14);
-
-  // Handle circle
-  ctx.beginPath(); ctx.arc(loadX, hy, 9, 0, Math.PI * 2);
-  ctx.fillStyle = '#fc8181'; ctx.fill();
-  ctx.strokeStyle = '#ffffff88'; ctx.lineWidth = 2; ctx.stroke();
+    // Handle
+    ctx.beginPath(); ctx.arc(l.x, hy, isActive ? 10 : 8, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.fill();
+    ctx.strokeStyle = isActive ? '#24292f' : '#24292f55'; ctx.lineWidth = 2; ctx.stroke();
+  });
 }
 
 // ── Reactions ─────────────────────────────────────────
 function drawReactions({ RA, RB }) {
-  const baseY = BY + BH/2 + 40;
-  const scale = 55 / P_MAX;
-
-  upArrow(BX0, baseY, RA * scale, '#4ade80');
-  ctx.fillStyle = '#86efac'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
-  ctx.fillText(`R_A = ${RA.toFixed(1)} kN`, BX0, baseY + RA * scale + 16);
-
-  upArrow(BX1, baseY, RB * scale, '#4ade80');
-  ctx.fillStyle = '#86efac'; ctx.textAlign = 'center';
-  ctx.fillText(`R_B = ${RB.toFixed(1)} kN`, BX1, baseY + RB * scale + 16);
+  const baseY = BY + BH/2 + 40, scale = 55 / P_MAX;
+  upArrow(BX0, baseY, RA * scale, '#1a7f37');
+  ctx.fillStyle = '#1a7f37'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText(`R_A = ${RA.toFixed(1)} N`, BX0, baseY + RA * scale + 16);
+  upArrow(BX1, baseY, RB * scale, '#1a7f37');
+  ctx.fillStyle = '#1a7f37'; ctx.textAlign = 'center';
+  ctx.fillText(`R_B = ${RB.toFixed(1)} N`, BX1, baseY + RB * scale + 16);
 }
 
 function upArrow(x, baseY, len, color) {
   ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.moveTo(x, baseY); ctx.lineTo(x, baseY + Math.max(len, 2));
-  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, baseY); ctx.lineTo(x, baseY + Math.max(len, 2)); ctx.stroke();
   ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(x, baseY);
-  ctx.lineTo(x - 7, baseY + 14); ctx.lineTo(x + 7, baseY + 14);
+  ctx.beginPath(); ctx.moveTo(x, baseY); ctx.lineTo(x-7, baseY+14); ctx.lineTo(x+7, baseY+14);
   ctx.closePath(); ctx.fill();
 }
 
-// ── Shear Force Diagram ──────────────────────────────
-function drawSFD({ a_px, RA, RB }) {
+// ── SFD (step function, multi-load) ──────────────────
+function drawSFD({ RA, RB }) {
   const cy    = SFD_CY;
-  const scale = DH / P_MAX;
-  const lx    = BX0 + a_px;
+  const sorted = [...loads].sort((a, b) => a.x - b.x);
 
-  // Section title & sub
-  sectionTitle('V — 전단력선도 (kN)', cy, '#63b3ed',
-    `양쪽 : +${RA.toFixed(1)} kN | 오른쪽 : −${RB.toFixed(1)} kN`);
+  // Dynamic y-axis: max absolute shear across all segments
+  let Vmax = Math.abs(RA), Vtmp = RA;
+  sorted.forEach(l => { Vtmp -= l.P; Vmax = Math.max(Vmax, Math.abs(Vtmp)); });
+  const Vaxis = Vmax > 0.01 ? Vmax : 1;
+  const scale = DH / Vaxis;
 
+  sectionTitle('V — 전단력선도 (N)', cy, '#0969da',
+    `R_A = ${RA.toFixed(1)} N  |  R_B = ${RB.toFixed(1)} N`);
   drawBaseline(cy);
-  drawYAxis(cy, P_MAX, scale, '#63b3ed');
+  drawYAxis(cy, Vaxis, scale, '#0969da');
 
-  // Positive block (0 to a)
-  diagBlock(BX0, lx, cy, -RA * scale, '#63b3ed');
+  // Build segments between load positions
+  const segs = [];
+  let V = RA, prevX = BX0;
+  sorted.forEach(l => { segs.push({ x0: prevX, x1: l.x, V }); V -= l.P; prevX = l.x; });
+  segs.push({ x0: prevX, x1: BX1, V });
 
-  // Negative block (a to L)
-  diagBlock(lx, BX1, cy, RB * scale, '#f6ad55');
+  // Fill each segment (positive=blue, negative=orange)
+  segs.forEach(({ x0, x1, V: sv }) => {
+    if (x1 <= x0 || Math.abs(sv) < 0.01) return;
+    const color = sv >= 0 ? '#0969da' : '#e36209';
+    const top = sv >= 0 ? cy - sv * scale : cy;
+    const bot = sv >= 0 ? cy : cy - sv * scale;
+    ctx.fillStyle = color + '38';
+    ctx.fillRect(x0, top, x1 - x0, bot - top);
+  });
 
-  // Vertical jump at load
-  ctx.strokeStyle = '#a0aec0'; ctx.lineWidth = 1.5;
+  // Step-function outline
   ctx.beginPath();
-  ctx.moveTo(lx, cy - RA * scale);
-  ctx.lineTo(lx, cy + RB * scale);
-  ctx.stroke();
+  V = RA;
+  ctx.moveTo(BX0, cy); ctx.lineTo(BX0, cy - V * scale);
+  sorted.forEach(l => {
+    ctx.lineTo(l.x, cy - V * scale);
+    V -= l.P;
+    ctx.lineTo(l.x, cy - V * scale);
+  });
+  ctx.lineTo(BX1, cy - V * scale); ctx.lineTo(BX1, cy);
+  ctx.strokeStyle = '#0969da'; ctx.lineWidth = 2; ctx.stroke();
 
-  // Value labels
-  ctx.font = 'bold 11px Segoe UI'; ctx.textAlign = 'center';
-  ctx.fillStyle = '#90cdf4';
-  if (a_px > 30)
-    ctx.fillText(`+${RA.toFixed(1)}`, (BX0 + lx) / 2, cy - RA * scale - 5);
-  ctx.fillStyle = '#fbd38d';
-  if (BL - a_px > 30)
-    ctx.fillText(`−${RB.toFixed(1)}`, (lx + BX1) / 2, cy + RB * scale + 14);
+  // Segment value labels — inside bars at mid-height
+  segs.forEach(({ x0, x1, V: sv }) => {
+    const barH = Math.abs(sv) * scale;
+    if (x1 - x0 < 40 || barH < 16) return;
+    const midX = (x0 + x1) / 2;
+    const midY = sv >= 0 ? cy - barH / 2 + 4 : cy + barH / 2 + 4;
+    ctx.fillStyle = sv >= 0 ? '#0550ae' : '#953800';
+    ctx.font = '10px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText(`${sv >= 0 ? '+' : ''}${sv.toFixed(1)}`, midX, midY);
+  });
 }
 
-// ── Bending Moment Diagram ───────────────────────────
-function drawBMD({ a_px, a_m, Mmax }) {
-  const cy     = BMD_CY;
-  const M_AXIS = 300;                  // fixed y-axis max (kN·m)
-  const Mscl   = DH / M_AXIS;
-  const lx     = BX0 + a_px;
+// ── BMD ───────────────────────────────────────────────
+function drawBMD({ RA, Mmax, MmaxX }) {
+  const cy      = BMD_CY;
+  const Maxis   = Mmax > 0.01 ? Mmax : 1;
+  const Mscl    = DH / Maxis;
+  const MmaxX_m = (MmaxX - BX0) / pxPm;
 
-  sectionTitle('M — 굽힘모멘트선도 (kN·m)', cy, '#c084fc',
-    `최대 모멘트 : ${Mmax.toFixed(2)} kN·m (x = ${a_m.toFixed(2)} m)`);
-
+  sectionTitle('M — 굽힘모멘트선도 (N·m)', cy, '#8250df',
+    `최대 모멘트 : ${Mmax.toFixed(2)} N·m (x = ${MmaxX_m.toFixed(2)} m)`);
   drawBaseline(cy);
-  drawYAxis(cy, M_AXIS, Mscl, '#c084fc');
+  drawYAxis(cy, Maxis, Mscl, '#8250df');
 
-  // Filled polygon
   const N = 500;
+  // Fill
   ctx.beginPath(); ctx.moveTo(BX0, cy);
   for (let i = 0; i <= N; i++) {
     const x = BX0 + (i / N) * BL;
-    ctx.lineTo(x, cy - M_at(x) * Mscl);
+    ctx.lineTo(x, cy - M_at(x, RA) * Mscl);
   }
   ctx.lineTo(BX1, cy); ctx.closePath();
   const grd = ctx.createLinearGradient(0, cy - DH, 0, cy);
-  grd.addColorStop(0, '#c084fc50'); grd.addColorStop(1, '#c084fc12');
+  grd.addColorStop(0, '#8250df40'); grd.addColorStop(1, '#8250df10');
   ctx.fillStyle = grd; ctx.fill();
 
   // Outline
   ctx.beginPath(); ctx.moveTo(BX0, cy);
   for (let i = 0; i <= N; i++) {
     const x = BX0 + (i / N) * BL;
-    ctx.lineTo(x, cy - M_at(x) * Mscl);
+    ctx.lineTo(x, cy - M_at(x, RA) * Mscl);
   }
   ctx.lineTo(BX1, cy);
-  ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.strokeStyle = '#8250df'; ctx.lineWidth = 2; ctx.stroke();
 
-  // Max moment label
   if (Mmax > 0.01) {
-    ctx.fillStyle = '#e9d8fd'; ctx.font = 'bold 11px Segoe UI';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${Mmax.toFixed(2)} kN·m`, lx, cy - Mmax * Mscl - 6);
+    ctx.fillStyle = '#8250df'; ctx.font = 'bold 11px Segoe UI'; ctx.textAlign = 'center';
+    const labelY = Math.max(cy - Mmax * Mscl - 6, cy - DH + 12);
+    ctx.fillText(`${Mmax.toFixed(2)} N·m`, MmaxX, labelY);
   }
 }
 
-// ── X-axis ticks ──────────────────────────────────────
+// ── X-axis ────────────────────────────────────────────
 function drawXAxis() {
-  ctx.fillStyle = '#8b949e'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#57606a'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'center';
   for (let i = 0; i <= 4; i++) {
     const x = BX0 + (i / 4) * BL;
-    const label = `${(i / 4 * Lm).toFixed(1)} m`;
-    ctx.fillText(label, x, BY + BH/2 + 7);
+    ctx.fillText(`${(i / 4 * Lm).toFixed(1)} m`, x, BY + BH/2 + 7);
   }
 }
 
-// ── Helpers ───────────────────────────────────────────
+// ── Drawing helpers ───────────────────────────────────
 function drawBaseline(cy) {
   ctx.save();
-  ctx.strokeStyle = '#374151'; ctx.lineWidth = 1;
-  ctx.setLineDash([6, 4]);
-  ctx.beginPath();
-  ctx.moveTo(BX0, cy); ctx.lineTo(BX1, cy);
-  ctx.stroke();
+  ctx.strokeStyle = '#d0d7de'; ctx.lineWidth = 1; ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(BX0, cy); ctx.lineTo(BX1, cy); ctx.stroke();
   ctx.restore();
 }
 
 function drawYAxis(cy, maxVal, scale, color) {
-  // Axis line
-  ctx.strokeStyle = '#4b5563'; ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(BX0 - 1, cy + DH + 4);
-  ctx.lineTo(BX0 - 1, cy - DH - 4);
-  ctx.stroke();
-  // Arrow tip
-  ctx.fillStyle = '#4b5563';
-  ctx.beginPath();
-  ctx.moveTo(BX0 - 1, cy - DH - 4);
-  ctx.lineTo(BX0 - 5, cy - DH + 6);
-  ctx.lineTo(BX0 + 3, cy - DH + 6);
-  ctx.fill();
-  // Tick at max
-  ctx.strokeStyle = '#4b5563'; ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(BX0 - 6, cy - DH); ctx.lineTo(BX0 + 2, cy - DH); ctx.stroke();
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(BX0-1, cy+DH+4); ctx.lineTo(BX0-1, cy-DH-4); ctx.stroke();
+  ctx.fillStyle = '#94a3b8';
+  ctx.beginPath(); ctx.moveTo(BX0-1, cy-DH-4); ctx.lineTo(BX0-5, cy-DH+6); ctx.lineTo(BX0+3, cy-DH+6); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(BX0-6, cy-DH); ctx.lineTo(BX0+2, cy-DH); ctx.stroke();
   ctx.fillStyle = color; ctx.font = '9px Segoe UI'; ctx.textAlign = 'right';
-  ctx.fillText(maxVal.toFixed(1), BX0 - 8, cy - DH + 4);
+  ctx.fillText(maxVal.toFixed(1), BX0-8, cy-DH+4);
 }
 
 function sectionTitle(text, cy, color, sub) {
   ctx.fillStyle = color; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'left';
-  ctx.fillText(text, BX0, cy - DH - 14);
-  if (sub) {
-    ctx.fillStyle = color + 'aa'; ctx.font = '10px Segoe UI';
-    ctx.fillText(sub, BX0, cy - DH - 3);
+  ctx.fillText(text, BX0, cy - DH - 28);
+  if (sub) { ctx.fillStyle = color + 'aa'; ctx.font = '10px Segoe UI'; ctx.fillText(sub, BX0, cy - DH - 16); }
+}
+
+// ── Chips ─────────────────────────────────────────────
+function updateChips({ RA, RB, Mmax, MmaxX }) {
+  const l = loads[activeIdx];
+  const posEl = document.getElementById('c-pos');
+  const pEl   = document.getElementById('c-P');
+  const lblA  = document.getElementById('lbl-a');
+  const lblP  = document.getElementById('lbl-P');
+  const n = loads.length > 1 ? activeIdx + 1 : '';
+  lblA.textContent = loads.length > 1 ? `P${n} 위치 =` : 'a =';
+  lblP.textContent = loads.length > 1 ? `P${n} =`      : 'P =';
+  if (l) {
+    if (document.activeElement !== posEl) posEl.value = ((l.x - BX0) / pxPm).toFixed(2);
+    if (document.activeElement !== pEl)   pEl.value   = l.P.toFixed(0);
   }
+  document.getElementById('c-Mmax').textContent  = Mmax.toFixed(2);
+  document.getElementById('c-MmaxX').textContent = ((MmaxX - BX0) / pxPm).toFixed(2);
 }
 
-function diagBlock(x0, x1, cy, offset, color) {
-  // offset > 0 → below baseline, offset < 0 → above baseline
-  const top = offset < 0 ? cy + offset : cy;
-  const bot = offset < 0 ? cy : cy + offset;
-  ctx.fillStyle = color + '40';
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
-  ctx.fillRect(x0, top, x1 - x0, bot - top);
-  ctx.strokeRect(x0, top, x1 - x0, bot - top);
-}
+// ── Input handlers ────────────────────────────────────
+document.getElementById('c-pos').addEventListener('change', e => {
+  const val = parseFloat(e.target.value);
+  if (isNaN(val) || !loads[activeIdx]) return;
+  loads[activeIdx].x = BX0 + Math.max(0, Math.min(Lm, val)) * pxPm;
+  draw();
+});
+document.getElementById('c-P').addEventListener('change', e => {
+  const val = parseFloat(e.target.value);
+  if (isNaN(val) || !loads[activeIdx]) return;
+  loads[activeIdx].P = Math.max(0, Math.min(P_MAX, val));
+  draw();
+});
 
-function updateChips({ a_m, RA, RB, Mmax }) {
-  document.getElementById('c-pos').textContent  = `a = ${a_m.toFixed(2)} m`;
-  document.getElementById('c-P').textContent    = `P = ${P.toFixed(0)} kN`;
-  document.getElementById('c-RA').textContent   = `R_A = ${RA.toFixed(2)} kN`;
-  document.getElementById('c-RB').textContent   = `R_B = ${RB.toFixed(2)} kN`;
-  document.getElementById('c-Mmax').textContent = `M_max = ${Mmax.toFixed(2)} kN·m`;
-}
-
-// ── Mouse / Touch interaction ────────────────────────
+// ── Interaction ───────────────────────────────────────
 function getPos(e) {
-  const r  = cv.getBoundingClientRect();
-  const sx = CW / r.width, sy = CH / r.height;
+  const r = cv.getBoundingClientRect(), sx = CW / r.width, sy = CH / r.height;
   if (e.touches) {
     const t = e.touches[0] || e.changedTouches[0];
     return { x: (t.clientX - r.left) * sx, y: (t.clientY - r.top) * sy };
@@ -441,23 +726,44 @@ function getPos(e) {
 function onStart(e) {
   e.preventDefault();
   const { x, y } = getPos(e);
-  if (isOnHandle(x, y)) { drag = true; cv.style.cursor = 'grabbing'; }
+  const hi = findHandle(x, y);
+  if (hi >= 0) {
+    dragIdx = hi; activeIdx = hi;
+    cv.style.cursor = 'grabbing';
+    draw();
+  } else if (isOnBeam(x, y)) {
+    loads.push({ x: Math.max(BX0, Math.min(BX1, x)), P: 50 });
+    dragIdx   = loads.length - 1;
+    activeIdx = dragIdx;
+    cv.style.cursor = 'grabbing';
+    draw();
+  }
 }
 
 function onMove(e) {
   e.preventDefault();
   const { x, y } = getPos(e);
-  if (drag) {
-    loadX = Math.max(BX0 + 5, Math.min(BX1 - 5, x));
-    const dy = TIP_Y - y;                          // pixels above beam tip
-    P = Math.max(5, Math.min(P_MAX, (dy - 25) / 80 * P_MAX));
+  if (dragIdx >= 0) {
+    const l = loads[dragIdx];
+    l.x = Math.max(BX0, Math.min(BX1, x));
+    const dy = TIP_Y - y;
+    l.P = Math.max(0, Math.min(P_MAX, (dy - 25) / 80 * P_MAX));
     draw();
   } else {
-    cv.style.cursor = isOnHandle(x, y) ? 'grab' : 'default';
+    const hi = findHandle(x, y);
+    cv.style.cursor = hi >= 0 ? 'grab' : isOnBeam(x, y) ? 'crosshair' : 'default';
   }
 }
 
-function onEnd() { drag = false; cv.style.cursor = 'default'; }
+function onEnd() {
+  if (dragIdx >= 0 && loads[dragIdx].P === 0 && loads.length > 1) {
+    loads.splice(dragIdx, 1);
+    activeIdx = Math.min(activeIdx, loads.length - 1);
+    draw();
+  }
+  dragIdx = -1;
+  cv.style.cursor = 'default';
+}
 
 cv.addEventListener('mousedown',  onStart);
 cv.addEventListener('mousemove',  onMove);

@@ -4,184 +4,607 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>기역자 렌치 – X축 회전</title>
-  <script>(function(){document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark';})();</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.getElementById('main-content'),{
+      delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+      throwOnError:false
+    });"></script>
   <style>
-    :root {
-      --bg: #0f1117;
-      --panel-bg: rgba(15,17,23,.92);
-      --panel-border: rgba(255,255,255,.13);
-      --panel-title: #cbd5e1;
-      --label: #94a3b8;
-      --text: #e2e8f0;
-      --input-bg: rgba(255,255,255,.06);
-      --input-border: rgba(255,255,255,.15);
-      --input-text: #e2e8f0;
-      --legend-bg: rgba(15,17,23,.82);
-      --legend-border: rgba(255,255,255,.1);
-      --legend-text: #94a3b8;
-      --axis: rgba(255,255,255,0.2);
-      --axis-label: rgba(255,255,255,0.55);
-      --axis-tick: rgba(255,255,255,0.15);
-      --axis-tick-label: rgba(255,255,255,0.4);
-      --scene-bg: 0x0f1117;
-    }
-    html[data-theme="light"] {
-      --bg: #e8edf3;
-      --panel-bg: rgba(255,255,255,.93);
-      --panel-border: rgba(0,0,0,.13);
-      --panel-title: #334155;
-      --label: #475569;
-      --text: #1e293b;
-      --input-bg: rgba(0,0,0,.04);
-      --input-border: rgba(0,0,0,.15);
-      --input-text: #1e293b;
-      --legend-bg: rgba(255,255,255,.7);
-      --legend-border: rgba(0,0,0,.08);
-      --legend-text: #475569;
-      --axis: rgba(0,0,0,0.2);
-      --axis-label: rgba(0,0,0,0.55);
-      --axis-tick: rgba(0,0,0,0.15);
-      --axis-tick-label: rgba(0,0,0,0.4);
-      --scene-bg: 0xe8edf3;
-    }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); overflow: hidden; font-family: system-ui, sans-serif; transition: background .25s; }
+    body { background: #e8edf3; font-family: system-ui, sans-serif; }
+    body.calc-open { overflow: hidden; }
     canvas { display: block; }
 
-    #theme-btn {
-      position: fixed; top: 14px; left: 22px; z-index: 200;
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 8px; padding: 5px 10px;
-      cursor: pointer; font-size: 15px; line-height: 1;
-      backdrop-filter: blur(10px);
+    /* ─── 본문 ─── */
+    #main-content {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 64px 28px 120px;
+      color: #1e293b;
+      line-height: 1.8;
     }
-    #theme-btn:hover { opacity: .8; }
+    #main-content h1 {
+      font-size: 2rem; font-weight: 800; letter-spacing: -.02em;
+      color: #0f172a; margin-bottom: 10px;
+    }
+    #main-content .subtitle {
+      font-size: 1rem; color: #64748b; margin-bottom: 48px;
+    }
+    #main-content h2 {
+      font-size: 1.15rem; font-weight: 700; color: #1e3a5f;
+      margin: 40px 0 12px; border-left: 4px solid #3b82f6;
+      padding-left: 12px;
+    }
+    #main-content p { color: #334155; margin-bottom: 14px; font-size: .97rem; }
+    #main-content .formula-box {
+      background: rgba(59,130,246,.06);
+      border: 1px solid rgba(59,130,246,.2);
+      border-radius: 10px;
+      padding: 14px 22px 10px;
+      margin: 16px 0;
+      overflow-x: auto;
+      color: #1e3a5f;
+    }
+    #main-content .fml-label {
+      font-size: .78rem; font-weight: 700; letter-spacing: .07em;
+      text-transform: uppercase; color: #1d4ed8; margin-bottom: 2px;
+    }
+    .katex-display { margin: 6px 0 !important; overflow-x: auto; overflow-y: hidden; }
 
+    /* ─── 예제 ─── */
+    #main-content .hint-box {
+      background: rgba(245,158,11,.07);
+      border: 1px solid rgba(245,158,11,.28);
+      border-radius: 10px;
+      padding: 14px 22px 12px;
+      margin: 14px 0;
+    }
+    #main-content .hint-num {
+      font-size: .78rem; font-weight: 800; letter-spacing: .08em;
+      text-transform: uppercase; color: #b45309; margin-bottom: 6px;
+    }
+    #main-content .hint-box p { color: #334155; margin-bottom: 4px; }
+    #main-content figure.ex-fig {
+      margin: 20px 0;
+      text-align: center;
+    }
+    #main-content figure.ex-fig figcaption {
+      font-size: .85rem; color: #64748b; margin-top: 6px;
+    }
+    #main-content .ex-given {
+      background: rgba(99,102,241,.06);
+      border: 1px solid rgba(99,102,241,.22);
+      border-radius: 10px;
+      padding: 14px 22px 12px;
+      margin: 16px 0;
+    }
+    #main-content .ex-given .fml-label { color: #4338ca; }
+    #main-content .ex-given td:first-child { color: #4338ca; font-weight: 600; width: 160px; }
+    #main-content .ex-given td { border-bottom: 1px solid rgba(99,102,241,.12); padding: 5px 10px; }
+    #main-content .step {
+      margin: 18px 0; padding-left: 14px;
+      border-left: 3px solid #3b82f6;
+    }
+    #main-content .step-title {
+      font-size: .8rem; font-weight: 700; letter-spacing: .07em;
+      text-transform: uppercase; color: #1d4ed8; margin-bottom: 2px;
+    }
+    #main-content .result-table th { background: #eff6ff; color: #1e3a5f; }
+    #main-content .result-table td { text-align: center; }
+    #main-content .result-table td:first-child { text-align: left; font-weight: 600; color: #334155; }
+    .badge-safe   { display:inline-block; background:#dcfce7; color:#166534; border:1px solid #86efac; border-radius:5px; padding:1px 8px; font-weight:700; font-size:.82rem; }
+    .badge-unsafe { display:inline-block; background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; border-radius:5px; padding:1px 8px; font-weight:700; font-size:.82rem; }
+    #main-content table {
+      width: 100%; border-collapse: collapse;
+      font-size: .9rem; margin: 16px 0;
+    }
+    #main-content th {
+      background: #dbeafe; color: #1e3a5f; font-weight: 600;
+      padding: 8px 12px; text-align: left;
+    }
+    #main-content td {
+      padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #334155;
+    }
+    #main-content tr:last-child td { border-bottom: none; }
+
+    /* ─── 계산기 열기 버튼 ─── */
+    #open-calc-wrap {
+      margin-top: 64px;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    }
+    #open-calc-wrap p { color: #64748b; font-size: .9rem; }
+    #open-calc-btn {
+      padding: 16px 40px; font-size: 1.05rem; font-weight: 700;
+      background: #1d4ed8; color: #fff;
+      border: none; border-radius: 14px; cursor: pointer;
+      box-shadow: 0 4px 18px rgba(29,78,216,.35);
+      transition: transform .15s, box-shadow .15s;
+    }
+    #open-calc-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(29,78,216,.45); }
+
+    /* ─── 계산기 모달 ─── */
+    #calc-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: #e8edf3;
+      overflow: hidden;
+    }
+    #calc-modal.open { display: block; }
+
+    #close-calc-btn {
+      position: absolute;
+      top: 22px; left: 22px;
+      z-index: 20;
+      background: rgba(255,255,255,.93);
+      border: 1px solid rgba(0,0,0,.12);
+      border-radius: 10px;
+      padding: 7px 16px;
+      font-size: 13px; font-weight: 600; color: #334155;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: background .15s;
+    }
+    #close-calc-btn:hover { background: rgba(255,255,255,1); }
+
+    /* ─── 우측 컬럼 ─── */
     #right-col {
-      position: fixed; top: 22px; right: 22px; width: 340px;
-      display: flex; flex-direction: column; gap: 10px;
-      max-height: calc(100vh - 44px); overflow-y: auto; scrollbar-width: none;
+      position: absolute;
+      top: 22px;
+      right: 22px;
+      width: 340px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: calc(100vh - 44px);
+      overflow-y: auto;
+      scrollbar-width: none;
     }
     #right-col::-webkit-scrollbar { display: none; }
 
+    /* ─── Slider UI ─── */
     #controls {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px; padding: 14px 18px;
-      display: flex; flex-direction: column; gap: 12px; align-items: stretch;
-      color: var(--text); backdrop-filter: blur(14px); user-select: none;
+      background: rgba(255,255,255,.93);
+      border: 1px solid rgba(0,0,0,.13);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      color: #1e293b;
+      backdrop-filter: blur(14px);
+      user-select: none;
     }
-    #controls label { font-size: 13px; color: var(--label); white-space: nowrap; letter-spacing: .03em; }
+    #controls label { font-size: 13px; color: #475569; white-space: nowrap; letter-spacing: .03em; }
 
-    #controls input[type="range"] {
-      -webkit-appearance: none; appearance: none;
-      flex: 1; height: 5px; border-radius: 3px; outline: none; cursor: pointer;
-    }
-    #controls input[type="range"]::-webkit-slider-thumb {
+    #slider {
       -webkit-appearance: none;
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--text); box-shadow: 0 2px 10px rgba(0,0,0,.4);
-      cursor: grab; transition: transform .1s;
+      appearance: none;
+      width: 280px;
+      height: 5px;
+      border-radius: 3px;
+      background: linear-gradient(to right, #3b82f6 0%, #22d3ee 50%, #ef4444 100%);
+      outline: none;
+      cursor: pointer;
     }
-    #controls input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.15); cursor: grabbing; }
+    #slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #334155;
+      box-shadow: 0 2px 10px rgba(0,0,0,.6);
+      cursor: grab;
+      transition: transform .1s;
+    }
+    #slider::-webkit-slider-thumb:active { transform: scale(1.15); cursor: grabbing; }
 
-    #mohr-wrap, #yield-panel {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px; padding: 12px 14px 10px;
+    #angleVal {
+      font-size: 18px;
+      font-weight: 700;
+      min-width: 62px;
+      text-align: right;
+      color: #60a5fa;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ─── Mohr 원 ─── */
+    #mohr-wrap {
+      background: rgba(255,255,255,.93);
+      border: 1px solid rgba(0,0,0,.1);
+      border-radius: 14px;
+      padding: 12px 14px 10px;
       backdrop-filter: blur(10px);
     }
-    #mohr-wrap .mohr-title, #yield-panel .yield-title {
-      color: var(--panel-title); font-size: 12px; font-weight: 600;
+    #mohr-wrap .mohr-title {
+      color: #334155; font-size: 12px; font-weight: 600;
       letter-spacing: .05em; text-align: center; margin-bottom: 8px;
     }
-    #mohrCanvas, #yieldCanvas { display: block; width: 100%; height: auto; }
+    #mohrCanvas  { display: block; width: 100%; height: auto; }
+    #yieldCanvas { display: block; width: 100%; height: auto; }
 
+    /* ─── φ 패널 ─── */
     #phi-panel {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px; padding: 16px 22px;
-      backdrop-filter: blur(10px); color: var(--label);
-      font-size: 13px; min-width: 230px;
+      background: rgba(255,255,255,.93);
+      border: 1px solid rgba(0,0,0,.1);
+      border-radius: 14px;
+      padding: 16px 22px;
+      backdrop-filter: blur(10px);
+      color: #475569;
+      font-size: 13px;
+      min-width: 230px;
     }
-    #phi-panel .title { color: var(--panel-title); font-size: 12px; font-weight: 600; letter-spacing: .05em; margin-bottom: 12px; }
+    #phi-panel .title { color: #334155; font-size: 12px; font-weight: 600; letter-spacing: .05em; margin-bottom: 12px; }
     #phi-panel .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 12px; }
-    #phi-panel .row label { color: var(--label); white-space: nowrap; }
-    #phi-panel .formula { color: var(--label); font-size: 11px; margin-top: 10px; line-height: 1.7; border-top: 1px solid var(--panel-border); padding-top: 10px; }
-
-    #nInput, .const-input {
-      background: var(--input-bg);
-      border: 1px solid var(--input-border);
-      border-radius: 6px; color: var(--input-text);
-      font-size: 13px; padding: 4px 8px; text-align: right; outline: none;
+    #phi-panel .row label { color: #475569; white-space: nowrap; }
+    #nInput {
+      width: 90px;
+      background: rgba(0,0,0,.04);
+      border: 1px solid rgba(0,0,0,.15);
+      border-radius: 6px;
+      color: #1e293b;
+      font-size: 13px;
+      padding: 4px 8px;
+      text-align: right;
+      outline: none;
     }
-    #nInput { width: 90px; }
-    #nInput:focus, .const-input:focus { border-color: #60a5fa; }
-
-    #phiVal { color: #34d399; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; text-align: right; }
-    #angleVal { color: #60a5fa; font-weight: 700; }
-    #sigmaVal { color: #f87171; font-weight: 700; font-size: 14px; }
-    #tauVal { color: #c084fc; font-weight: 700; font-size: 14px; }
-
-    #const-panel {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px; padding: 12px 16px;
-      backdrop-filter: blur(10px); min-width: 200px;
+    #nInput:focus { border-color: #60a5fa; }
+    #phiVal {
+      color: #34d399;
+      font-weight: 700;
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
     }
-    #const-panel .const-title { color: var(--panel-title); font-size: 12px; font-weight: 600; letter-spacing: .05em; text-align: center; margin-bottom: 10px; }
-    .const-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; color: var(--label); font-size: 12px; }
-    .const-row:last-child { margin-bottom: 0; }
-    .const-row label { white-space: nowrap; }
-    .const-input { width: 110px; font-size: 12px; padding: 3px 7px; }
+    #phi-panel .formula { color: #475569; font-size: 11px; margin-top: 10px; line-height: 1.7; border-top: 1px solid rgba(0,0,0,.04); padding-top: 10px; }
 
-    #legend {
-      position: fixed; top: 22px; left: 22px;
-      color: var(--legend-text); font-size: 13px; line-height: 2;
-      pointer-events: none;
-      background: var(--legend-bg);
-      border: 1px solid var(--legend-border);
-      border-radius: 12px; padding: 14px 18px;
-      backdrop-filter: blur(8px);
+    /* ─── Yield 선도 패널 ─── */
+    #yield-panel {
+      background: rgba(255,255,255,.93);
+      border: 1px solid rgba(0,0,0,.1);
+      border-radius: 14px;
+      padding: 12px 14px 10px;
+      backdrop-filter: blur(10px);
     }
-    .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 7px; vertical-align: middle; }
-
-    .yield-legend { display: flex; justify-content: space-between; margin-top: 7px; font-size: 11px; font-variant-numeric: tabular-nums; }
-    .yield-warn { margin-top: 5px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: .04em; border-radius: 7px; padding: 3px 0; display: none; }
+    #yield-panel .yield-title {
+      color: #334155; font-size: 12px; font-weight: 600;
+      letter-spacing: .05em; text-align: center; margin-bottom: 6px;
+    }
+    .yield-legend {
+      display: flex; justify-content: space-between;
+      margin-top: 7px; font-size: 11px; font-variant-numeric: tabular-nums;
+    }
+    .yield-warn {
+      margin-top: 5px; text-align: center;
+      font-size: 11px; font-weight: 700; letter-spacing: .04em;
+      border-radius: 7px; padding: 3px 0;
+      display: none;
+    }
     #vm-warn  { color: #38bdf8; background: rgba(56,189,248,.10); border: 1px solid rgba(56,189,248,.35); }
     #mss-warn { color: #f59e0b; background: rgba(245,158,11,.10); border: 1px solid rgba(245,158,11,.35); }
+
+    /* ─── 상수 입력 패널 ─── */
+    #const-panel {
+      background: rgba(255,255,255,.93);
+      border: 1px solid rgba(0,0,0,.1);
+      border-radius: 14px;
+      padding: 12px 16px 12px;
+      backdrop-filter: blur(10px);
+      min-width: 200px;
+    }
+    #const-panel .const-title {
+      color: #334155; font-size: 12px; font-weight: 600;
+      letter-spacing: .05em; text-align: center; margin-bottom: 10px;
+    }
+    .const-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; margin-bottom: 8px; color: #475569; font-size: 12px;
+    }
+    .const-row:last-child { margin-bottom: 0; }
+    .const-row label { white-space: nowrap; }
+    .const-input {
+      width: 110px; background: rgba(0,0,0,.04);
+      border: 1px solid rgba(0,0,0,.15); border-radius: 6px;
+      color: #1e293b; font-size: 12px; padding: 3px 7px;
+      text-align: right; outline: none;
+    }
+    .const-input:focus { border-color: #60a5fa; }
+
+    /* ─── Legend ─── */
+    #legend {
+      position: fixed;
+      top: 22px;
+      left: 22px;
+      color: #475569;
+      font-size: 13px;
+      line-height: 2;
+      pointer-events: none;
+      background: rgba(255,255,255,.7);
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 12px;
+      padding: 14px 18px;
+      backdrop-filter: blur(8px);
+    }
+    .dot {
+      display: inline-block;
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      margin-right: 7px;
+      vertical-align: middle;
+    }
+
   </style>
 </head>
 <body>
 
-  <button id="theme-btn" onclick="toggleTheme()" title="테마 전환"><span id="ti"></span></button>
+  <!-- ═══════════════ 본문 ═══════════════ -->
+  <main id="main-content">
+    <h1>응력 해석과 파손이론</h1>
+    <p class="subtitle">복합 하중을 받는 L형 렌치의 임계 응력 상태를 Mohr 원과 파손 이론으로 분석합니다.</p>
 
-  <div id="right-col">
-    <div id="controls">
-      <div style="display:flex;align-items:center;gap:16px;">
+    <!-- ── 1. Mohr 원 ── -->
+    <h2>1. Mohr 원</h2>
+    <p>
+      임의의 2차원 응력 상태 $(\sigma_x,\, \sigma_y,\, \tau_{xy})$가 주어질 때,
+      각도 $\theta$로 회전한 단면에서의 수직·전단 응력은 다음 변환식으로 구합니다.
+    </p>
+    <div class="formula-box">
+      <div class="fml-label">응력 변환식</div>
+      $$\sigma(\theta) = \frac{\sigma_x+\sigma_y}{2} + \frac{\sigma_x-\sigma_y}{2}\cos 2\theta + \tau_{xy}\sin 2\theta$$
+      $$\tau(\theta) = -\frac{\sigma_x-\sigma_y}{2}\sin 2\theta + \tau_{xy}\cos 2\theta$$
+    </div>
+    <p>
+      이 궤적을 $\sigma$–$\tau$ 평면에 그리면 반지름 $R$인 원이 되며, 이를 <b>Mohr 원</b>이라 합니다.
+    </p>
+    <div class="formula-box">
+      <div class="fml-label">원 중심 &amp; 반지름</div>
+      $$C = \frac{\sigma_x+\sigma_y}{2}, \qquad R = \sqrt{\left(\frac{\sigma_x-\sigma_y}{2}\right)^{\!2}+\tau_{xy}^{2}}$$
+    </div>
+    <p>전단응력이 0인 두 교점이 <b>주응력</b>이며, 원의 최고점이 <b>최대 전단응력</b>입니다.</p>
+    <div class="formula-box">
+      <div class="fml-label">주응력 &amp; 최대 전단응력</div>
+      $$\sigma_1 = C+R, \qquad \sigma_2 = C-R, \qquad \tau_{\max} = R$$
+    </div>
+    <p>
+      본 렌치 문제에서는 굽힘 수직응력 $\sigma$와 비틀림 전단응력 $\tau$가 동시에 작용하므로,
+      응력 상태는 $(\sigma_x,\sigma_y,\tau_{xy})=(\sigma,0,\tau)$이고 중심과 반지름은 다음과 같습니다.
+    </p>
+    <div class="formula-box">
+      <div class="fml-label">렌치 임계점</div>
+      $$C = \frac{\sigma}{2}, \qquad R = \sqrt{\left(\frac{\sigma}{2}\right)^{\!2}+\tau^{2}}$$
+    </div>
+
+    <!-- ── 2. 항복응력 ── -->
+    <h2>2. 항복응력</h2>
+    <p>
+      단축 인장 시험에서 소성 변형이 시작되는 경계 응력을
+      <b>항복강도 $S_y$</b>라 하며, 연성 재료 파손 기준의 기준값으로 사용됩니다.
+    </p>
+    <table>
+      <tr><th>재료</th><th>$S_y$ (MPa)</th><th>$S_u$ (MPa)</th></tr>
+      <tr><td>SM45C (기계구조용강)</td><td>490</td><td>686</td></tr>
+      <tr><td>STS304 (오스테나이트계)</td><td>205</td><td>520</td></tr>
+      <tr><td>Al 6061-T6</td><td>276</td><td>310</td></tr>
+      <tr><td>Ti-6Al-4V</td><td>880</td><td>950</td></tr>
+    </table>
+    <p>
+      단축 시험값을 복잡한 다축 응력 상태에 적용하기 위해 <b>등가응력(equivalent stress)</b> 개념이 필요합니다.
+    </p>
+
+    <!-- ── 3. 최대전단응력이론 ── -->
+    <h2>3. 최대전단응력이론 (MSS / Tresca)</h2>
+    <p>
+      Henri Tresca(1868)가 제안한 이론으로, 재료가
+      <b>최대 전단응력이 단축 항복 전단응력에 도달할 때</b> 항복이 시작된다고 봅니다.
+    </p>
+    <div class="formula-box">
+      <div class="fml-label">최대 전단응력</div>
+      $$\tau_{\max} = \frac{1}{2}\max\!\left(\,|\sigma_1-\sigma_2|,\;|\sigma_2-\sigma_3|,\;|\sigma_3-\sigma_1|\,\right)$$
+    </div>
+    <div class="formula-box">
+      <div class="fml-label">항복 조건</div>
+      $$\tau_{\max} \;\geq\; \frac{S_y}{2}$$
+    </div>
+    <p>
+      평면응력 $(\sigma_3=0)$에서 $\sigma_1$과 $\sigma_2$의 부호에 따라 지배식이 달라집니다.
+    </p>
+    <div class="formula-box">
+      <div class="fml-label">평면응력 경우</div>
+      $$\tau_{\max} = \begin{cases} \dfrac{\max(|\sigma_1|,\,|\sigma_2|)}{2} & \sigma_1,\,\sigma_2 \text{ 동부호} \\[10pt] \dfrac{|\sigma_1-\sigma_2|}{2} & \sigma_1,\,\sigma_2 \text{ 이부호} \end{cases}$$
+    </div>
+    <p>
+      $\sigma_1$–$\sigma_2$ 선도에서 항복 경계는 <b>육각형</b>으로 나타납니다.
+      Von Mises 타원보다 항상 안쪽에 위치하므로 더 <b>보수적(conservative)</b>입니다.
+    </p>
+
+    <!-- ── 4. 변형에너지이론 ── -->
+    <h2>4. 변형에너지이론 (Von Mises)</h2>
+    <p>
+      von Mises(1913)가 제안한 이론으로, <b>형상 변화에 소비되는 단위체적당 전단 변형에너지</b>가
+      단축 항복 시 값과 같아질 때 파손된다고 봅니다.
+    </p>
+    <div class="formula-box">
+      <div class="fml-label">등가응력 — 평면응력</div>
+      $$\sigma_{\mathrm{vm}} = \sqrt{\sigma_1^2 - \sigma_1\sigma_2 + \sigma_2^2}$$
+    </div>
+    <div class="formula-box">
+      <div class="fml-label">등가응력 — 일반 3축</div>
+      $$\sigma_{\mathrm{vm}} = \frac{1}{\sqrt{2}}\sqrt{(\sigma_1-\sigma_2)^2+(\sigma_2-\sigma_3)^2+(\sigma_3-\sigma_1)^2}$$
+    </div>
+    <div class="formula-box">
+      <div class="fml-label">항복 조건</div>
+      $$\sigma_{\mathrm{vm}} \;\geq\; S_y$$
+    </div>
+    <p>
+      $\sigma_1$–$\sigma_2$ 선도에서 항복 경계는 <b>기울어진 타원</b>으로 나타납니다.
+      순수 전단에서의 항복 전단강도는 $S_s = S_y/\!\sqrt{3}\approx 0.577\,S_y$ 로,
+      Tresca의 $0.5\,S_y$보다 약 15% 크므로 덜 보수적이나 실험값에 더 잘 부합합니다.
+    </p>
+    <table>
+      <tr><th>비교 항목</th><th>MSS (Tresca)</th><th>Von Mises</th></tr>
+      <tr><td>항복 경계 형상</td><td>육각형</td><td>타원</td></tr>
+      <tr><td>순수 전단 항복 $S_s$</td><td>$S_y/2$</td><td>$S_y/\sqrt{3}$</td></tr>
+      <tr><td>보수성</td><td>더 보수적</td><td>덜 보수적 (실험치 근접)</td></tr>
+      <tr><td>적용</td><td>설계 기준, 단순 계산</td><td>FEM 해석, 정밀 설계</td></tr>
+    </table>
+
+    <!-- ── 5. 예제 ── -->
+    <h2>5. 예제</h2>
+    <p>
+      아래 렌치의 팔 끝에서 하중 $N$이 아랫방향으로 가해질 때, 축의 안전계수를 구하여라.
+    </p>
+
+    <div class="ex-given">
+      <div class="fml-label">주어진 조건</div>
+      <table>
+        <tr><td>헤드 지름</td><td>$d_h = 15\;\text{mm}$</td></tr>
+        <tr><td>헤드 길이</td><td>$L_h = 20\;\text{mm}$</td></tr>
+        <tr><td>축 지름</td><td>$d = 10\;\text{mm}$</td></tr>
+        <tr><td>축 길이</td><td>$L = 110\;\text{mm}$</td></tr>
+        <tr><td>연결부 지름</td><td>$d_j = 20\;\text{mm}$</td></tr>
+        <tr><td>연결부 길이</td><td>$L_j = 20\;\text{mm}$</td></tr>
+        <tr><td>팔 길이</td><td>$a = 150\;\text{mm}$</td></tr>
+        <tr><td>항복강도</td><td>$S_y = 550\;\text{MPa}$</td></tr>
+        <tr><td>하중</td><td>$N = 200\;\text{N}$ 및 $N = 300\;\text{N}$</td></tr>
+      </table>
+    </div>
+
+    <figure class="ex-fig">
+      <svg viewBox="0 0 480 370" xmlns="http://www.w3.org/2000/svg"
+           style="max-width:100%;height:auto">
+        <rect width="480" height="370" fill="#f8fafc" rx="8" stroke="#e2e8f0"/>
+
+        <!-- title -->
+        <text x="240" y="26" text-anchor="middle" font-size="13" font-weight="600"
+              fill="#1e293b" font-family="sans-serif">정면도 (투상도)</text>
+
+        <!-- chain-dot centerlines -->
+        <line x1="68" y1="270" x2="300" y2="270" stroke="#94a3b8" stroke-width="0.9"
+              stroke-dasharray="10,3,2,3"/>
+        <line x1="90" y1="38" x2="90" y2="258" stroke="#94a3b8" stroke-width="0.9"
+              stroke-dasharray="10,3,2,3"/>
+
+        <!-- === Wrench body === -->
+        <!-- Arm (팔): x=83~97, y=46~256 (14px≈10mm w, 210px=150mm h) -->
+        <rect x="83" y="46" width="14" height="210" fill="#dde4ee" stroke="#475569" stroke-width="1.5" rx="1"/>
+        <!-- Connector (연결부): x=76~104, y=256~284 (28px=20mm sq) -->
+        <rect x="76" y="256" width="28" height="28" fill="#b0c4de" stroke="#475569" stroke-width="1.5"/>
+        <!-- Shaft (축): x=104~258, y=263~277 (154px=110mm, 14px=10mm) -->
+        <rect x="104" y="263" width="154" height="14" fill="#dde4ee" stroke="#475569" stroke-width="1.5"/>
+        <!-- Head (헤드): x=258~286, y=259.5~280.5 (28px=20mm, 21px≈15mm) -->
+        <rect x="258" y="259.5" width="28" height="21" fill="#b0c4de" stroke="#475569" stroke-width="1.5" rx="2"/>
+
+        <!-- === Force arrow N === -->
+        <defs>
+          <marker id="nhead" markerWidth="10" markerHeight="10" refX="10" refY="5"
+                  orient="auto" markerUnits="userSpaceOnUse">
+            <polygon points="0,0 10,5 0,10" fill="#2563eb"/>
+          </marker>
+        </defs>
+        <line x1="90" y1="16" x2="90" y2="46" stroke="#2563eb" stroke-width="2.5" marker-end="url(#nhead)"/>
+        <text x="98" y="32" font-size="14" fill="#2563eb" font-weight="700" font-family="sans-serif">N</text>
+
+        <!-- === Dimension lines === -->
+
+        <!-- 1. Arm length a=150mm — left side at x=62 -->
+        <line x1="83"  y1="46"  x2="58"  y2="46"  stroke="#94a3b8" stroke-width="0.7" stroke-dasharray="3,2"/>
+        <line x1="83"  y1="256" x2="58"  y2="256" stroke="#94a3b8" stroke-width="0.7" stroke-dasharray="3,2"/>
+        <line x1="62"  y1="50"  x2="62"  y2="252" stroke="#64748b" stroke-width="1.1"/>
+        <line x1="58"  y1="46"  x2="66"  y2="46"  stroke="#64748b" stroke-width="1.1"/>
+        <line x1="58"  y1="256" x2="66"  y2="256" stroke="#64748b" stroke-width="1.1"/>
+        <text font-size="11" fill="#334155" font-family="sans-serif" text-anchor="middle"
+              transform="translate(50,151) rotate(-90)">a = 150 mm</text>
+
+        <!-- 2. Shaft length L=110mm — below at y=303 -->
+        <line x1="104" y1="277" x2="104" y2="306" stroke="#94a3b8" stroke-width="0.7" stroke-dasharray="3,2"/>
+        <line x1="258" y1="281" x2="258" y2="306" stroke="#94a3b8" stroke-width="0.7" stroke-dasharray="3,2"/>
+        <line x1="108" y1="303" x2="254" y2="303" stroke="#64748b" stroke-width="1.1"/>
+        <line x1="104" y1="299" x2="104" y2="307" stroke="#64748b" stroke-width="1.1"/>
+        <line x1="258" y1="299" x2="258" y2="307" stroke="#64748b" stroke-width="1.1"/>
+        <text x="181" y="317" text-anchor="middle" font-size="11" fill="#334155" font-family="sans-serif">L = 110 mm</text>
+
+        <!-- 3. Head length Lh=20mm — below at y=320 -->
+        <line x1="258" y1="307" x2="258" y2="323" stroke="#94a3b8" stroke-width="0.7" stroke-dasharray="3,2"/>
+        <line x1="286" y1="281" x2="286" y2="323" stroke="#94a3b8" stroke-width="0.7" stroke-dasharray="3,2"/>
+        <line x1="262" y1="320" x2="282" y2="320" stroke="#64748b" stroke-width="1.1"/>
+        <line x1="258" y1="316" x2="258" y2="324" stroke="#64748b" stroke-width="1.1"/>
+        <line x1="286" y1="316" x2="286" y2="324" stroke="#64748b" stroke-width="1.1"/>
+        <text x="272" y="335" text-anchor="middle" font-size="10.5" fill="#334155" font-family="sans-serif">L&#x2095; = 20</text>
+
+        <!-- 4. Shaft diameter Ø10 — leader callout above shaft -->
+        <line x1="181" y1="263" x2="181" y2="249" stroke="#64748b" stroke-width="0.9"/>
+        <line x1="181" y1="249" x2="230" y2="249" stroke="#64748b" stroke-width="0.9"/>
+        <text x="232" y="253" font-size="11" fill="#334155" font-family="sans-serif">&#216;10 mm</text>
+
+        <!-- 5. Head diameter Ø15 — vertical dim right of head -->
+        <line x1="286" y1="259.5" x2="360" y2="259.5" stroke="#94a3b8" stroke-width="0.7" stroke-dasharray="3,2"/>
+        <line x1="286" y1="280.5" x2="360" y2="280.5" stroke="#94a3b8" stroke-width="0.7" stroke-dasharray="3,2"/>
+        <line x1="357" y1="263"   x2="357" y2="277"   stroke="#64748b" stroke-width="1.1"/>
+        <line x1="353" y1="259.5" x2="361" y2="259.5" stroke="#64748b" stroke-width="1.1"/>
+        <line x1="353" y1="280.5" x2="361" y2="280.5" stroke="#64748b" stroke-width="1.1"/>
+        <text x="365" y="274" font-size="11" fill="#334155" font-family="sans-serif">&#216;15 mm</text>
+
+        <!-- === Part labels === -->
+        <text x="99"  y="155" font-size="10.5" fill="#475569" font-family="sans-serif">팔</text>
+        <text x="152" y="260" font-size="10.5" fill="#475569" font-family="sans-serif">축</text>
+        <text x="291" y="274" font-size="10"   fill="#475569" font-family="sans-serif">헤드</text>
+        <text x="90"  y="348" text-anchor="middle" font-size="10.5" fill="#64748b" font-family="sans-serif">연결부 &#216;20&#215;20 mm</text>
+      </svg>
+      <figcaption>그림 1 — 기역자 렌치 정면 투상도 (단위: mm)</figcaption>
+    </figure>
+
+    <div class="hint-box">
+      <div class="hint-num">힌트 1</div>
+      <p>손잡이(팔)는 충분히 강하다고 가정한다. 파손이 우려되는 위치는 <b>헤드와 축이 만나는 부위</b>로,
+      급격한 형상 변화에 의한 <b>응력 집중</b>이 발생하는 임계 위치이다.
+      이 위치의 표면에는 <b>굽힘 인장응력 $\sigma$와 비틀림 전단응력 $\tau$가 동시에 작용하는 미소면적</b>이 존재한다.
+      비틀림 모멘트 $T$와 굽힘 모멘트 $M$을 먼저 구하라.</p>
+    </div>
+
+    <div class="hint-box">
+      <div class="hint-num">힌트 2</div>
+      <p>원형 단면 축의 단면 특성값은 다음과 같다.</p>
+      $$\frac{I}{c} = \frac{\pi d^3}{32} \qquad \frac{J}{c} = \frac{\pi d^3}{16}$$
+      <p style="margin-top:6px;">이를 이용하면 굽힘 수직응력 $\sigma = M/(I/c)$, 비틀림 전단응력 $\tau = T/(J/c)$를 구할 수 있다.</p>
+    </div>
+
+    <div id="open-calc-wrap">
+      <p>아래 버튼을 클릭하면 3D 계산기로 직접 풀이를 확인할 수 있습니다.</p>
+      <button id="open-calc-btn">⚙ 렌치 응력 계산기 열기</button>
+    </div>
+  </main>
+
+  <!-- ═══════════════ 계산기 모달 ═══════════════ -->
+  <div id="calc-modal">
+    <button id="close-calc-btn">← 본문으로</button>
+
+    <div id="right-col">
+
+    <div id="controls" style="flex-direction:column; gap:12px; align-items:stretch;">
+      <div style="display:flex; align-items:center; gap:16px;">
         <label style="min-width:54px;">축 길이</label>
-        <input type="range" id="llSlider" min="0.1" max="0.2" value="0.15" step="0.001"
-               style="background:linear-gradient(to right,#3b82f6,#22d3ee);">
-        <span id="llVal" style="color:#60a5fa;font-weight:700;min-width:48px;text-align:right;font-variant-numeric:tabular-nums;">0.150</span>
+        <input type="range" id="llSlider" min="0.1" max="0.2" value="0.12" step="0.001"
+               style="-webkit-appearance:none; appearance:none; flex:1; height:5px; border-radius:3px;
+                      background:linear-gradient(to right,#3b82f6,#22d3ee); outline:none; cursor:pointer;">
+        <span id="llVal" style="color:#60a5fa; font-weight:700; min-width:48px; text-align:right; font-variant-numeric:tabular-nums;">0.120</span>
       </div>
-      <div style="display:flex;align-items:center;gap:16px;">
+      <div style="display:flex; align-items:center; gap:16px;">
         <label style="min-width:44px;">팔 길이</label>
         <input type="range" id="slSlider" min="0.1" max="0.2" value="0.15" step="0.001"
-               style="background:linear-gradient(to right,#f59e0b,#ef4444);">
-        <span id="slVal" style="color:#b45309;font-weight:700;min-width:48px;text-align:right;font-variant-numeric:tabular-nums;">0.150</span>
+               style="-webkit-appearance:none; appearance:none; flex:1; height:5px; border-radius:3px;
+                      background:linear-gradient(to right,#f59e0b,#ef4444); outline:none; cursor:pointer;">
+        <span id="slVal" style="color:#b45309; font-weight:700; min-width:48px; text-align:right; font-variant-numeric:tabular-nums;">0.150</span>
       </div>
-      <div style="display:flex;align-items:center;gap:16px;">
+      <div style="display:flex; align-items:center; gap:16px;">
         <label style="min-width:44px;">N</label>
         <input type="range" id="nSlider" min="200" max="300" value="200" step="1"
-               style="background:linear-gradient(to right,#34d399,#059669);">
-        <span id="nVal" style="color:#34d399;font-weight:700;min-width:48px;text-align:right;font-variant-numeric:tabular-nums;">0 N</span>
+               style="-webkit-appearance:none; appearance:none; flex:1; height:5px; border-radius:3px;
+                      background:linear-gradient(to right,#34d399,#059669); outline:none; cursor:pointer;">
+        <span id="nVal" style="color:#34d399; font-weight:700; min-width:48px; text-align:right; font-variant-numeric:tabular-nums;">0 N</span>
       </div>
     </div>
 
     <div id="const-panel">
-      <div class="const-title">재료 상수</div>
       <div class="const-row">
         <label>항복강도 (MPa)</label>
         <input type="number" class="const-input" id="scInput" value="550" step="1">
@@ -193,10 +616,22 @@
     </div>
 
     <div id="phi-panel">
-      <div class="row"><label>φ</label><span id="phiVal">—</span></div>
-      <div class="row"><label>비틀림각</label><span id="angleVal">—</span></div>
-      <div class="row"><label>σ (Pa)</label><span id="sigmaVal">—</span></div>
-      <div class="row"><label>τ (Pa)</label><span id="tauVal">—</span></div>
+      <div class="row">
+        <label>φ</label>
+        <span id="phiVal">—</span>
+      </div>
+      <div class="row">
+        <label>비틀림각</label>
+        <span id="angleVal" style="color:#60a5fa; font-weight:700;">—</span>
+      </div>
+      <div class="row">
+        <label>σ (Pa)</label>
+        <span id="sigmaVal" style="color:#f87171; font-weight:700; font-size:14px;">—</span>
+      </div>
+      <div class="row">
+        <label>τ (Pa)</label>
+        <span id="tauVal" style="color:#c084fc; font-weight:700; font-size:14px;">—</span>
+      </div>
     </div>
 
     <div id="mohr-wrap">
@@ -214,18 +649,10 @@
       <div id="vm-warn"  class="yield-warn">⚠ Von Mises 항복 (σ_vm &gt; S_c)</div>
       <div id="mss-warn" class="yield-warn">⚠ MSS 항복 (τ_max &gt; S_y/2)</div>
     </div>
-  </div>
 
-  <script>
-    function toggleTheme() {
-      var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = next;
-      localStorage.setItem('theme', next);
-      document.getElementById('ti').textContent = next === 'dark' ? '☀️' : '🌙';
-      if (window._themeChanged) window._themeChanged();
-    }
-    document.getElementById('ti').textContent = (document.documentElement.dataset.theme === 'dark') ? '☀️' : '🌙';
-  </script>
+  </div><!-- #right-col -->
+  </div><!-- #calc-modal -->
+
 
   <script type="importmap">
   {
@@ -240,272 +667,463 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    const isDark = () => document.documentElement.dataset.theme !== 'light';
-    const sceneBgDark  = new THREE.Color(0x0f1117);
-    const sceneBgLight = new THREE.Color(0xe8edf3);
-
+    /* ─── Renderer ─── */
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(innerWidth, innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    document.body.prepend(renderer.domElement);
+    document.getElementById('calc-modal').prepend(renderer.domElement);
 
+    /* ─── Scene ─── */
     const scene = new THREE.Scene();
-    scene.background = isDark() ? sceneBgDark : sceneBgLight;
-    scene.fog = new THREE.FogExp2(isDark() ? 0x0f1117 : 0xe8edf3, 0.4);
+    scene.background = new THREE.Color(0xe8edf3);
+    scene.fog = new THREE.FogExp2(0xe8edf3, 0.4);
 
+    /* ─── Camera ─── */
     const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.001, 10);
     camera.position.set(0.4, 0.5, 0.9);
 
+    /* ─── Orbit Controls ─── */
     const orbit = new OrbitControls(camera, renderer.domElement);
-    orbit.enableDamping = true; orbit.dampingFactor = 0.07;
-    orbit.minDistance = 0.1; orbit.maxDistance = 2.5;
 
+    orbit.enableDamping = true;
+    orbit.dampingFactor = 0.07;
+    orbit.minDistance = 0.1;
+    orbit.maxDistance = 2.5;
+
+    /* ─── Lighting ─── */
     scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+
     const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-    sun.position.set(0.7, 1.0, 0.5); sun.castShadow = true;
-    sun.shadow.camera.near = 0.01; sun.shadow.camera.far = 3;
-    sun.shadow.camera.left=-0.8; sun.shadow.camera.right=0.8;
-    sun.shadow.camera.top=0.8; sun.shadow.camera.bottom=-0.8;
+    sun.position.set(0.7, 1.0, 0.5);
+    sun.castShadow = true;
+    sun.shadow.camera.near = 0.01;
+    sun.shadow.camera.far = 3;
+    [-8, 8].forEach(v => {
+      sun.shadow.camera.left = sun.shadow.camera.bottom = v < 0 ? v : undefined;
+      sun.shadow.camera.right = sun.shadow.camera.top = v > 0 ? v : undefined;
+    });
+    sun.shadow.camera.left   = -0.8;
+    sun.shadow.camera.right  =  0.8;
+    sun.shadow.camera.top    =  0.8;
+    sun.shadow.camera.bottom = -0.8;
     sun.shadow.mapSize.setScalar(2048);
     scene.add(sun);
+
     const fillLight = new THREE.DirectionalLight(0x6699ff, 0.35);
-    fillLight.position.set(-0.5, 0.3, -0.5); scene.add(fillLight);
+    fillLight.position.set(-0.5, 0.3, -0.5);
+    scene.add(fillLight);
 
+    /* ════════════════════════════════════════
+       YZ 평면 벽면 (x = 0)
+    ════════════════════════════════════════ */
     const wallGeo = new THREE.PlaneGeometry(0.9, 0.9);
-    const wallMat = new THREE.MeshPhongMaterial({ color:0xa8c4dc, transparent:true, opacity:0.52, side:THREE.DoubleSide });
+    const wallMat = new THREE.MeshPhongMaterial({
+      color: 0xa8c4dc,
+      transparent: true,
+      opacity: 0.52,
+      side: THREE.DoubleSide,
+    });
     const wall = new THREE.Mesh(wallGeo, wallMat);
-    wall.rotation.y = Math.PI / 2; wall.receiveShadow = true; scene.add(wall);
+    wall.rotation.y = Math.PI / 2;   // 법선 벡터 → X 방향 → YZ 평면이 됨
+    wall.receiveShadow = true;
+    scene.add(wall);
 
+
+    /* ════════════════════════════════════════
+       좌표축
+    ════════════════════════════════════════ */
     const addAxis = (from, to, color) => {
-      const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...from), new THREE.Vector3(...to)]);
+      const g = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(...from),
+        new THREE.Vector3(...to),
+      ]);
       scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color })));
     };
-    addAxis([-0.55,0,0],[0.55,0,0],0xef4444);
-    addAxis([0,-0.45,0],[0,0.45,0],0x22c55e);
-    addAxis([0,0,-0.45],[0,0,0.45],0x3b82f6);
+    addAxis([-0.55, 0, 0], [0.55, 0, 0], 0xef4444);  // X 축 – 빨강
+    addAxis([0, -0.45, 0], [0, 0.45, 0], 0x22c55e);  // Y 축 – 초록
+    addAxis([0, 0, -0.45], [0, 0, 0.45], 0x3b82f6);  // Z 축 – 파랑
 
+    // 축 화살표
     const arrowMat = color => new THREE.MeshBasicMaterial({ color });
     const cone = (color, pos, rotZ) => {
-      const m = new THREE.Mesh(new THREE.ConeGeometry(0.007,0.028,8), arrowMat(color));
-      m.rotation.z = rotZ; m.position.set(...pos); scene.add(m);
+      const m = new THREE.Mesh(new THREE.ConeGeometry(0.007, 0.028, 8), arrowMat(color));
+      m.rotation.z = rotZ;
+      m.position.set(...pos);
+      scene.add(m);
     };
-    cone(0xef4444,[0.55,0,0],Math.PI/2);
-    cone(0x22c55e,[0,0.45,0],0);
-    cone(0x3b82f6,[0,0,0.45],-Math.PI/2);
-    scene.children[scene.children.length-1].rotation.set(Math.PI/2,0,0);
-    scene.children[scene.children.length-1].position.set(0,0,0.55);
+    cone(0xef4444, [ 0.55, 0,    0   ],  Math.PI / 2);
+    cone(0x22c55e, [ 0,    0.45, 0   ],  0);
+    cone(0x3b82f6, [ 0,    0,    0.45], -Math.PI / 2);
 
-    const wrench = new THREE.Group(); scene.add(wrench);
-    const TW=0.01, TD=0.015, R=0.005;
-    let LL=0.14, SL=0.15;
-    const HX=0.02;
-    const metalMat = new THREE.MeshPhongMaterial({ color:0xb0bec5, specular:0xffffff, shininess:150 });
-    const darkMat  = new THREE.MeshPhongMaterial({ color:0x455a64, specular:0x8899aa, shininess:100 });
+    // +Z 화살표 수정
+    scene.children[scene.children.length - 1].rotation.set(Math.PI / 2, 0, 0);
+    scene.children[scene.children.length - 1].position.set(0, 0, 0.55);
 
-    const lArm = new THREE.Mesh(new THREE.CylinderGeometry(R,R,LL,32), metalMat);
-    lArm.rotation.z = Math.PI/2; lArm.position.set(HX+LL/2,0,0); lArm.castShadow=true; wrench.add(lArm);
-    const sArm = new THREE.Mesh(new THREE.BoxGeometry(TW,SL,TD), darkMat);
-    sArm.position.set(HX+LL,SL/2,0); sArm.castShadow=true; wrench.add(sArm);
-    const wallHead = new THREE.Mesh(new THREE.CylinderGeometry(0.0075,0.0075,0.02,32), metalMat);
-    wallHead.rotation.z=Math.PI/2; wallHead.position.set(0.01,0,0); wallHead.castShadow=true; wrench.add(wallHead);
-    const hexJoint = new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,0.02,6), darkMat);
-    hexJoint.rotation.z=Math.PI/2; hexJoint.position.set(HX+LL,0,0); hexJoint.castShadow=true; wrench.add(hexJoint);
+    /* ════════════════════════════════════════
+       기역자(ㄱ) 렌치 — 세워서 부착
+         긴 팔: 원점(벽)에서 +X 방향 (LL) — 회전축과 일치
+         짧은 팔: 긴 팔 끝에서 +Y 방향 (SL) — 회전 시 원형 궤적
+    ════════════════════════════════════════ */
+    const wrench = new THREE.Group();
+    scene.add(wrench);
 
-    const nSlider  = document.getElementById('nSlider');
-    const nVal     = document.getElementById('nVal');
-    const phiVal   = document.getElementById('phiVal');
-    const angleVal = document.getElementById('angleVal');
-    const sigmaVal = document.getElementById('sigmaVal');
-    const tauVal   = document.getElementById('tauVal');
-    const scInput  = document.getElementById('scInput');
-    const gInput   = document.getElementById('gInput');
+    const TW = 0.01;    // 팔 단면 X
+    const TD = 0.015;   // 팔 단면 Z
+    const R  = 0.005;   // 축 반지름 (지름 0.01)
+    let   LL = 0.11;    // 축 길이 (X 방향)
+    let   SL = 0.15;    // 팔 길이 (Y 방향)
+    const HX = 0.02;    // 헤드 길이 (벽~축 간격)
+    const metalMat = new THREE.MeshPhongMaterial({
+      color: 0xb0bec5, specular: 0xffffff, shininess: 150,
+    });
+    const darkMat = new THREE.MeshPhongMaterial({
+      color: 0x455a64, specular: 0x8899aa, shininess: 100,
+    });
 
-    function si(val, unit) {
-      if (val===0) return '0 '+unit;
-      const abs=Math.abs(val);
-      for (const [f,p] of [[1e12,'T'],[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'μ'],[1e-9,'n']]) {
-        if (abs>=f) return (val/f).toPrecision(4)+' '+p+unit;
-      }
-      return val.toExponential(3)+' '+unit;
+    // 축: 원형 원통 — 원점 → +X 방향
+    const lArm = new THREE.Mesh(new THREE.CylinderGeometry(R, R, LL, 32), metalMat);
+    lArm.rotation.z = Math.PI / 2;
+    lArm.position.set(HX + LL / 2, 0, 0);
+    lArm.castShadow = true;
+    wrench.add(lArm);
+
+    // 팔: 사각 막대 — 긴 팔 끝에서 +Y 방향 (이전 모양 유지)
+    const sArm = new THREE.Mesh(new THREE.BoxGeometry(TW, SL, TD), darkMat);
+    sArm.position.set(HX + LL, SL / 2, 0);
+    sArm.castShadow = true;
+    wrench.add(sArm);
+
+    // 벽면 쪽 원통형 렌치 헤드 (지름 0.15, 길이 0.2 — 축 시작점과 벽 사이)
+    const wallHead = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.0075, 0.0075, 0.02, 32),
+      metalMat
+    );
+    wallHead.rotation.z = Math.PI / 2;
+    wallHead.position.set(0.01, 0, 0);   // x: 0 ~ 0.02 (헤드 끝 x=0)
+    wallHead.castShadow = true;
+    wrench.add(wallHead);
+
+    // 연결부: 육각기둥 — 축과 팔이 만나는 모서리 강화
+    const hexJoint = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.02, 6), darkMat);
+    hexJoint.rotation.z = Math.PI / 2;
+    hexJoint.position.set(HX + LL, 0, 0);
+    hexJoint.castShadow = true;
+    wrench.add(hexJoint);
+
+
+
+    /* ════════════════════════════════════════
+       φ 계산 + 회전 연동 (N 슬라이더)
+    ════════════════════════════════════════ */
+    const nSlider   = document.getElementById('nSlider');
+    const nVal      = document.getElementById('nVal');
+    const phiVal    = document.getElementById('phiVal');
+    const angleVal  = document.getElementById('angleVal');
+    const sigmaVal  = document.getElementById('sigmaVal');
+    const tauVal    = document.getElementById('tauVal');
+
+    function applyN() {
+      const N   = parseFloat(nSlider.value);
+      const d   = R * 2;
+      const T   = N * SL;
+      const L   = LL + 0.01;
+      const G   = (parseFloat(gInput.value) || 80) * 1e9;
+      const J   = Math.PI * Math.pow(d, 4) / 32;
+      const phi   = (T * L) / (G * J);
+      const M     = N * L;
+      const Z     = Math.PI * Math.pow(d, 3) / 32;
+      const sigma = M / Z;
+      const Zp    = Math.PI * Math.pow(d, 3) / 16;
+      const tau   = T / Zp;
+      const totalRad = phi + Math.PI / 2;
+      const totalDeg = THREE.MathUtils.radToDeg(totalRad);
+
+      wrench.rotation.x    = totalRad;
+      nVal.textContent     = si(N, 'N');
+      phiVal.textContent   = phi.toPrecision(4) + ' rad';
+      sigmaVal.textContent = si(sigma, 'Pa');
+      tauVal.textContent   = si(tau, 'Pa');
+      angleVal.textContent = THREE.MathUtils.radToDeg(phi).toFixed(4) + '°';
+      const C  = sigma / 2;
+      const Rm = Math.sqrt(C * C + tau * tau);
+      const s1 = C + Rm, s2 = C - Rm;
+      drawMohr(sigma, tau);
+      drawYield(s1, s2);
     }
 
-    function axisColor()      { return isDark() ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'; }
-    function axisLabelColor() { return isDark() ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)'; }
-    function tickColor()      { return isDark() ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'; }
-    function tickLabelColor() { return isDark() ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'; }
+    /* ─── SI 접두어 ─── */
+    function si(val, unit) {
+      if (val === 0) return '0 ' + unit;
+      const abs = Math.abs(val);
+      const prefixes = [
+        [1e12, 'T'], [1e9, 'G'], [1e6, 'M'], [1e3, 'k'],
+        [1,    '' ], [1e-3,'m'], [1e-6,'μ'], [1e-9,'n'],
+      ];
+      for (const [factor, prefix] of prefixes) {
+        if (abs >= factor) {
+          const scaled = val / factor;
+          return scaled.toPrecision(4) + ' ' + prefix + unit;
+        }
+      }
+      return val.toExponential(3) + ' ' + unit;
+    }
 
+    /* ─── Mohr 원 ─── */
     const mohrCanvas = document.getElementById('mohrCanvas');
     const mCtx = mohrCanvas.getContext('2d');
 
     function drawMohr(sigma, tau) {
-      const W=mohrCanvas.width, H=mohrCanvas.height;
-      const cx=W/2, cy=H/2;
-      mCtx.clearRect(0,0,W,H);
-      const C=sigma/2, Rm=Math.sqrt(C*C+tau*tau);
-      const s1=C+Rm, s2=C-Rm;
-      const maxVal=Math.max(Math.abs(s1),Math.abs(s2),Math.abs(tau),1);
-      const scale=(W*0.38)/maxVal;
+      const W = mohrCanvas.width, H = mohrCanvas.height;
+      const cx = W / 2, cy = H / 2;
+      mCtx.clearRect(0, 0, W, H);
 
-      mCtx.strokeStyle=axisColor(); mCtx.lineWidth=1;
-      mCtx.beginPath(); mCtx.moveTo(10,cy); mCtx.lineTo(W-10,cy); mCtx.stroke();
-      mCtx.beginPath(); mCtx.moveTo(cx,10); mCtx.lineTo(cx,H-10); mCtx.stroke();
-      mCtx.fillStyle=axisLabelColor(); mCtx.font='11px system-ui';
-      mCtx.fillText('σ',W-16,cy-6); mCtx.fillText('τ',cx+6,18);
+      const C  = sigma / 2;               // 원 중심 x
+      const R  = Math.sqrt(C * C + tau * tau); // 반지름
+      const s1 = C + R;                   // 최대 주응력
+      const s2 = C - R;                   // 최소 주응력
 
-      if (Rm===0) return;
-      const px2=cx+C*scale;
-      mCtx.strokeStyle='#38bdf8'; mCtx.lineWidth=1.5;
-      mCtx.beginPath(); mCtx.arc(px2,cy,Rm*scale,0,Math.PI*2); mCtx.stroke();
-      mCtx.fillStyle='#38bdf8';
-      mCtx.beginPath(); mCtx.arc(px2,cy,3,0,Math.PI*2); mCtx.fill();
+      // 스케일: 반지름이 캔버스의 40% 차지
+      const maxVal = Math.max(Math.abs(s1), Math.abs(s2), Math.abs(tau), 1);
+      const scale  = (W * 0.38) / maxVal;
 
-      const spx1=cx, spy1=cy-tau*scale;
-      const spx2=cx+sigma*scale, spy2=cy+tau*scale;
-      mCtx.fillStyle='#f87171';
-      mCtx.beginPath(); mCtx.arc(spx1,spy1,4,0,Math.PI*2); mCtx.fill();
-      mCtx.beginPath(); mCtx.arc(spx2,spy2,4,0,Math.PI*2); mCtx.fill();
-      mCtx.strokeStyle='rgba(248,113,113,0.4)'; mCtx.lineWidth=1;
-      mCtx.beginPath(); mCtx.moveTo(spx1,spy1); mCtx.lineTo(spx2,spy2); mCtx.stroke();
+      // 배경
+      mCtx.fillStyle = 'rgba(0,0,0,0)';
+      mCtx.fillRect(0, 0, W, H);
 
-      mCtx.font='10px system-ui';
-      mCtx.fillStyle='#059669'; mCtx.fillText('σ₁',cx+s1*scale+3,cy-5);
-      mCtx.fillStyle='#7c3aed'; mCtx.fillText('σ₂',cx+s2*scale-18,cy-5);
-      mCtx.fillStyle='#b45309'; mCtx.fillText('τmax',px2+4,cy-Rm*scale-4);
+      // σ 축 (수평)
+      mCtx.strokeStyle = 'rgba(0,0,0,0.2)';
+      mCtx.lineWidth = 1;
+      mCtx.beginPath(); mCtx.moveTo(10, cy); mCtx.lineTo(W - 10, cy); mCtx.stroke();
+      // τ 축 (수직)
+      mCtx.beginPath(); mCtx.moveTo(cx, 10); mCtx.lineTo(cx, H - 10); mCtx.stroke();
 
-      const lineH=15;
-      const rows=[{label:'최대 주응력',val:s1,color:'#059669'},{label:'최소 주응력',val:s2,color:'#7c3aed'},{label:'최대 전단',val:Rm,color:'#b45309'}];
-      mCtx.font='bold 10px system-ui';
-      rows.forEach(({label,val,color},i)=>{
-        const y=H-(rows.length-i-1)*lineH-6;
-        mCtx.fillStyle=color; mCtx.fillText(label+' = '+si(val,'Pa'),6,y);
+      // 축 레이블
+      mCtx.fillStyle = 'rgba(0,0,0,0.55)';
+      mCtx.font = '11px system-ui';
+      mCtx.fillText('σ', W - 16, cy - 6);
+      mCtx.fillText('τ', cx + 6, 18);
+
+      if (R === 0) return;
+
+      // 원
+      const px = cx + C * scale;
+      mCtx.strokeStyle = '#38bdf8';
+      mCtx.lineWidth = 1.5;
+      mCtx.beginPath();
+      mCtx.arc(px, cy, R * scale, 0, Math.PI * 2);
+      mCtx.stroke();
+
+      // 중심 점
+      mCtx.fillStyle = '#38bdf8';
+      mCtx.beginPath(); mCtx.arc(px, cy, 3, 0, Math.PI * 2); mCtx.fill();
+
+      // 위쪽 점 (0, τ)
+      const spx1 = cx;
+      const spy1 = cy - tau * scale;
+      mCtx.fillStyle = '#f87171';
+      mCtx.beginPath(); mCtx.arc(spx1, spy1, 4, 0, Math.PI * 2); mCtx.fill();
+
+      // 아래쪽 점 (σ, -τ)
+      const spx2 = cx + sigma * scale;
+      const spy2 = cy + tau * scale;
+      mCtx.fillStyle = '#f87171';
+      mCtx.beginPath(); mCtx.arc(spx2, spy2, 4, 0, Math.PI * 2); mCtx.fill();
+
+      // 지름선
+      mCtx.strokeStyle = 'rgba(248,113,113,0.4)';
+      mCtx.lineWidth = 1;
+      mCtx.beginPath();
+      mCtx.moveTo(spx1, spy1);
+      mCtx.lineTo(spx2, spy2);
+      mCtx.stroke();
+
+      // σ₁, σ₂ 레이블 (원 위)
+      mCtx.font = '10px system-ui';
+      mCtx.fillStyle = '#059669';
+      mCtx.fillText('σ₁', cx + s1 * scale + 3, cy - 5);
+      mCtx.fillStyle = '#7c3aed';
+      mCtx.fillText('σ₂', cx + s2 * scale - 18, cy - 5);
+
+      // τ_max 레이블
+      mCtx.fillStyle = '#b45309';
+      mCtx.fillText('τmax', px + 4, cy - R * scale - 4);
+
+      // 최대 응력 수치 (SI 접두어)
+      const lineH = 15;
+      const rows = [
+        { label: '최대 주응력', val: s1, color: '#059669' },
+        { label: '최소 주응력', val: s2, color: '#7c3aed' },
+        { label: '최대 전단',   val: R,  color: '#b45309' },
+      ];
+      mCtx.font = 'bold 10px system-ui';
+      rows.forEach(({ label, val, color }, i) => {
+        const y = H - (rows.length - i - 1) * lineH - 6;
+        mCtx.fillStyle = color;
+        mCtx.fillText(label + ' = ' + si(val, 'Pa'), 6, y);
       });
     }
 
-    const yieldCanvas=document.getElementById('yieldCanvas');
-    const yCtx=yieldCanvas.getContext('2d');
+    /* ─── MSS & Von Mises 선도 ─── */
+    const yieldCanvas = document.getElementById('yieldCanvas');
+    const yCtx = yieldCanvas.getContext('2d');
+    const scInput = document.getElementById('scInput');
+    const gInput  = document.getElementById('gInput');
 
-    function drawYield(s1,s2) {
-      const Sc=(parseFloat(scInput.value)||550)*1e6;
-      const W=yieldCanvas.width, H=yieldCanvas.height;
-      const cx=W/2, cy=H/2, plotScale=W*0.42;
-      yCtx.clearRect(0,0,W,H);
+    function drawYield(s1, s2) {
+      const Sc = (parseFloat(scInput.value) || 550) * 1e6;
+      const W = yieldCanvas.width, H = yieldCanvas.height;
+      const cx = W / 2, cy = H / 2;
+      yCtx.clearRect(0, 0, W, H);
 
-      yCtx.strokeStyle=axisColor(); yCtx.lineWidth=1;
-      yCtx.beginPath(); yCtx.moveTo(10,cy); yCtx.lineTo(W-10,cy); yCtx.stroke();
-      yCtx.beginPath(); yCtx.moveTo(cx,10); yCtx.lineTo(cx,H-10); yCtx.stroke();
-      yCtx.fillStyle=axisLabelColor(); yCtx.font='11px system-ui';
-      yCtx.fillText('σ₁/Sc',W-42,cy-6); yCtx.fillText('σ₂/Sc',cx+5,16);
+      const plotScale = W * 0.42;  // ±1 → pixels
 
-      yCtx.strokeStyle=tickColor(); yCtx.lineWidth=1; yCtx.font='9px system-ui';
-      [-1,1].forEach(t=>{
-        const ppx=cx+t*plotScale;
-        yCtx.beginPath(); yCtx.moveTo(ppx,cy-4); yCtx.lineTo(ppx,cy+4); yCtx.stroke();
-        yCtx.fillStyle=tickLabelColor();
-        yCtx.fillText(t>0?'1':'-1',ppx-(t>0?3:7),cy+14);
-        const ppy=cy-t*plotScale;
-        yCtx.beginPath(); yCtx.moveTo(cx-4,ppy); yCtx.lineTo(cx+4,ppy); yCtx.stroke();
-        yCtx.fillText(t>0?'1':'-1',cx+6,ppy+4);
+      // 축
+      yCtx.strokeStyle = 'rgba(0,0,0,0.2)';
+      yCtx.lineWidth = 1;
+      yCtx.beginPath(); yCtx.moveTo(10, cy); yCtx.lineTo(W-10, cy); yCtx.stroke();
+      yCtx.beginPath(); yCtx.moveTo(cx, 10); yCtx.lineTo(cx, H-10); yCtx.stroke();
+
+      // 축 레이블
+      yCtx.fillStyle = 'rgba(0,0,0,0.55)';
+      yCtx.font = '11px system-ui';
+      yCtx.fillText('σ₁/Sc', W-42, cy-6);
+      yCtx.fillText('σ₂/Sc', cx+5, 16);
+
+      // ±1 눈금
+      yCtx.strokeStyle = 'rgba(0,0,0,0.15)';
+      yCtx.lineWidth = 1;
+      yCtx.font = '9px system-ui';
+      [-1, 1].forEach(t => {
+        const px = cx + t * plotScale;
+        yCtx.beginPath(); yCtx.moveTo(px, cy-4); yCtx.lineTo(px, cy+4); yCtx.stroke();
+        yCtx.fillStyle = 'rgba(0,0,0,0.4)';
+        yCtx.fillText(t > 0 ? '1' : '-1', px - (t > 0 ? 3 : 7), cy + 14);
+
+        const py = cy - t * plotScale;
+        yCtx.beginPath(); yCtx.moveTo(cx-4, py); yCtx.lineTo(cx+4, py); yCtx.stroke();
+        yCtx.fillText(t > 0 ? '1' : '-1', cx + 6, py + 4);
       });
 
-      yCtx.strokeStyle='#38bdf8'; yCtx.lineWidth=1.5; yCtx.beginPath();
-      for(let i=0;i<=360;i++){
-        const a=(i*Math.PI)/180;
-        const n1=Math.cos(a)+Math.sin(a)/Math.sqrt(3);
-        const n2=(2/Math.sqrt(3))*Math.sin(a);
-        const x=cx+n1*plotScale, y=cy-n2*plotScale;
-        i===0?yCtx.moveTo(x,y):yCtx.lineTo(x,y);
+      // Von Mises 타원 (normalized: n₁²-n₁n₂+n₂²=1)
+      yCtx.strokeStyle = '#38bdf8';
+      yCtx.lineWidth = 1.5;
+      yCtx.beginPath();
+      for (let i = 0; i <= 360; i++) {
+        const a = (i * Math.PI) / 180;
+        const n1 = Math.cos(a) + Math.sin(a) / Math.sqrt(3);
+        const n2 = (2 / Math.sqrt(3)) * Math.sin(a);
+        const x = cx + n1 * plotScale;
+        const y = cy - n2 * plotScale;
+        i === 0 ? yCtx.moveTo(x, y) : yCtx.lineTo(x, y);
       }
-      yCtx.closePath(); yCtx.stroke();
+      yCtx.closePath();
+      yCtx.stroke();
 
-      const hex=[[1,0],[1,1],[0,1],[-1,0],[-1,-1],[0,-1]];
-      yCtx.strokeStyle='#f59e0b'; yCtx.lineWidth=1.5; yCtx.beginPath();
-      hex.forEach(([hx,hy],i)=>{
-        const x=cx+hx*plotScale, y=cy-hy*plotScale;
-        i===0?yCtx.moveTo(x,y):yCtx.lineTo(x,y);
+      // Tresca 육각형 (normalized MSS: ±1)
+      // 1·3사분면 꼭짓점 (±1,±1), 2·4사분면은 σ₁−σ₂=±1 대각선
+      const hex = [
+        [ 1,  0], [ 1,  1],
+        [ 0,  1], [-1,  0],
+        [-1, -1], [ 0, -1],
+      ];
+      yCtx.strokeStyle = '#f59e0b';
+      yCtx.lineWidth = 1.5;
+      yCtx.beginPath();
+      hex.forEach(([hx, hy], i) => {
+        const x = cx + hx * plotScale, y = cy - hy * plotScale;
+        i === 0 ? yCtx.moveTo(x, y) : yCtx.lineTo(x, y);
       });
-      yCtx.closePath(); yCtx.stroke();
+      yCtx.closePath();
+      yCtx.stroke();
 
-      const n1=s1/Sc, n2=s2/Sc;
-      if(n1!==0||n2!==0){
-        const ppx=cx+n1*plotScale, ppy=cy-n2*plotScale;
-        yCtx.fillStyle='#f87171';
-        yCtx.beginPath(); yCtx.arc(ppx,ppy,5,0,Math.PI*2); yCtx.fill();
+      // 현재 응력점 (normalized)
+      const n1 = s1 / Sc, n2 = s2 / Sc;
+      if (n1 !== 0 || n2 !== 0) {
+        const px = cx + n1 * plotScale, py = cy - n2 * plotScale;
+        yCtx.fillStyle = '#f87171';
+        yCtx.beginPath(); yCtx.arc(px, py, 5, 0, Math.PI * 2); yCtx.fill();
       }
 
-      const svm=Math.sqrt(s1*s1-s1*s2+s2*s2)/Sc;
-      const str=Math.max(Math.abs(s1-s2),Math.abs(s1),Math.abs(s2))/Sc;
-      document.getElementById('vmLeg').textContent ='VM/Sc: '+svm.toPrecision(4);
-      document.getElementById('mssLeg').textContent='MSS/Sc: '+str.toPrecision(4);
-      document.getElementById('vm-warn').style.display =svm>1?'block':'none';
-      document.getElementById('mss-warn').style.display=str>1?'block':'none';
+      // 등가응력 (normalized by Sc)
+      const svm = Math.sqrt(s1*s1 - s1*s2 + s2*s2) / Sc;
+      const str = Math.max(Math.abs(s1-s2), Math.abs(s1), Math.abs(s2)) / Sc;
+
+      document.getElementById('vmLeg').textContent  = 'VM/Sc: '  + svm.toPrecision(4);
+      document.getElementById('mssLeg').textContent = 'MSS/Sc: ' + str.toPrecision(4);
+      document.getElementById('vm-warn').style.display  = svm > 1 ? 'block' : 'none';
+      document.getElementById('mss-warn').style.display = str > 1 ? 'block' : 'none';
     }
 
-    function applyN() {
-      const N=parseFloat(nSlider.value);
-      const d=R*2, T=N*SL, L=LL+0.01;
-      const G=(parseFloat(gInput.value)||80)*1e9;
-      const J=Math.PI*Math.pow(d,4)/32;
-      const phi=(T*L)/(G*J);
-      const M=N*L, Z=Math.PI*Math.pow(d,3)/32;
-      const sigma=M/Z, Zp=Math.PI*Math.pow(d,3)/16, tau=T/Zp;
-      const totalRad=phi+Math.PI/2;
-      wrench.rotation.x=totalRad;
-      nVal.textContent=si(N,'N');
-      phiVal.textContent=phi.toPrecision(4)+' rad';
-      sigmaVal.textContent=si(sigma,'Pa');
-      tauVal.textContent=si(tau,'Pa');
-      angleVal.textContent=THREE.MathUtils.radToDeg(phi).toFixed(4)+'°';
-      const C=sigma/2, Rm=Math.sqrt(C*C+tau*tau);
-      drawMohr(sigma,tau);
-      drawYield(C+Rm, C-Rm);
-    }
+    scInput.addEventListener('input', () => applyN());
+    gInput.addEventListener('input',  () => applyN());
+    drawYield(0, 0);
 
-    scInput.addEventListener('input',applyN);
-    gInput.addEventListener('input',applyN);
-    nSlider.addEventListener('input',applyN);
+    drawMohr(0, 0);
 
-    const llSlider=document.getElementById('llSlider');
-    const llVal=document.getElementById('llVal');
-    const BASE_LL=LL;
-    llSlider.addEventListener('input',()=>{
-      const v=parseFloat(llSlider.value);
-      LL=v-0.01; llVal.textContent=v.toFixed(3);
-      lArm.scale.y=LL/BASE_LL; lArm.position.x=HX+LL/2;
-      sArm.position.x=HX+LL; hexJoint.position.x=HX+LL; applyN();
-    });
-
-    const slSlider=document.getElementById('slSlider');
-    const slVal=document.getElementById('slVal');
-    const BASE_SL=SL;
-    slSlider.addEventListener('input',()=>{
-      SL=parseFloat(slSlider.value); slVal.textContent=SL.toFixed(3);
-      sArm.scale.y=SL/BASE_SL; sArm.position.y=SL/2; applyN();
-    });
-
-    // Theme change callback
-    window._themeChanged = function() {
-      const dark=isDark();
-      scene.background.set(dark?0x0f1117:0xe8edf3);
-      scene.fog.color.setHex(dark?0x0f1117:0xe8edf3);
-      applyN();
-    };
-
-    drawMohr(0,0);
-    drawYield(0,0);
+    nSlider.addEventListener('input', applyN);
     applyN();
 
-    (function animate(){
+    /* ─── 축 길이 슬라이더 ─── */
+    const llSlider = document.getElementById('llSlider');
+    const llVal    = document.getElementById('llVal');
+    const BASE_LL  = LL;
+
+    llSlider.addEventListener('input', () => {
+      const L_val = parseFloat(llSlider.value);
+      LL = L_val - 0.01;
+      llVal.textContent = L_val.toFixed(3);
+      lArm.scale.y = LL / BASE_LL;
+      lArm.position.x = HX + LL / 2;
+      sArm.position.x = HX + LL;
+      hexJoint.position.x = HX + LL;
+      applyN();
+    });
+
+    /* ─── 팔 길이 슬라이더 ─── */
+    const slSlider = document.getElementById('slSlider');
+    const slVal    = document.getElementById('slVal');
+    const BASE_SL  = SL;
+
+    slSlider.addEventListener('input', () => {
+      SL = parseFloat(slSlider.value);
+      slVal.textContent = SL.toFixed(3);
+      sArm.scale.y = SL / BASE_SL;
+      sArm.position.y = SL / 2;
+      applyN();
+    });
+
+    /* ════════════════════════════════════════
+       렌더 루프
+    ════════════════════════════════════════ */
+    (function animate() {
       requestAnimationFrame(animate);
       orbit.update();
-      renderer.render(scene,camera);
+      renderer.render(scene, camera);
     })();
 
-    window.addEventListener('resize',()=>{
-      camera.aspect=innerWidth/innerHeight;
+    window.addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(innerWidth,innerHeight);
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    /* ─── 계산기 모달 열기/닫기 ─── */
+    const calcModal = document.getElementById('calc-modal');
+
+    document.getElementById('open-calc-btn').addEventListener('click', () => {
+      calcModal.classList.add('open');
+      document.body.classList.add('calc-open');
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+      applyN();
+    });
+
+    document.getElementById('close-calc-btn').addEventListener('click', () => {
+      calcModal.classList.remove('open');
+      document.body.classList.remove('calc-open');
     });
   </script>
 </body>
