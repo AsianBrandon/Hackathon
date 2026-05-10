@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>압력강하 계산</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f1f5f9;
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #1e293b;
+      min-height: 100vh;
+      padding: 24px 20px;
+    }
+    .page-header { max-width: 1160px; margin: 0 auto 20px; }
+    .page-header h1 { font-size: 22px; font-weight: 700; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+    .result-row {
+      max-width: 1160px;
+      margin: 20px auto 0;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .card + .card { margin-top: 16px; }
+    .card h2 {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 16px;
+    }
+
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 13px; color: #475569; margin-bottom: 5px; }
+    .field input {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .field input:focus { border-color: #3b82f6; }
+    .field .hint { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+    button {
+      width: 100%;
+      padding: 11px;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+      margin-top: 4px;
+    }
+    button:hover { background: #2563eb; }
+
+    .result-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .result-item { flex: 1 1 auto; min-width: 100px; }
+    .result-item {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .result-item .lbl { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
+    .result-item .val { font-size: 20px; font-weight: 700; margin-top: 3px; }
+    .val.laminar      { color: #16a34a; }
+    .val.transitional { color: #d97706; }
+    .val.turbulent    { color: #dc2626; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 11px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+    .badge.laminar      { background: #dcfce7; color: #16a34a; }
+    .badge.transitional { background: #fef3c7; color: #d97706; }
+    .badge.turbulent    { background: #fee2e2; color: #dc2626; }
+
+    .formula {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 13px 16px;
+      margin-top: 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.9;
+    }
+    .formula .hi { color: #60a5fa; font-weight: 700; }
+    .formula .eq { color: #e2e8f0; }
+
+    canvas { width: 100%; height: auto; display: block; border-radius: 8px; }
+
+    .vq-toggle {
+      display: flex;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .vq-toggle button {
+      flex: 1;
+      margin: 0;
+      padding: 8px;
+      border-radius: 0;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .vq-toggle button.active {
+      background: #3b82f6;
+      color: #fff;
+    }
+    input:disabled {
+      background: #f1f5f9;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .intro {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 80px 24px 60px;
+    }
+    .intro-hero { text-align: center; margin-bottom: 64px; }
+    .intro-hero h1 { font-size: 36px; font-weight: 700; margin-bottom: 14px; }
+    .intro-hero p  { font-size: 16px; color: #64748b; line-height: 1.7; }
+
+    .theory { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 24px; }
+    .theory-section { background: #fff; border-radius: 16px; padding: 28px 32px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+    .theory-section h2 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0; }
+    .theory-section p  { font-size: 14px; color: #475569; line-height: 1.8; margin-bottom: 10px; }
+    .theory-section p:last-child { margin-bottom: 0; }
+
+    .example-box {
+      background: #fffbeb;
+      border: 1.5px solid #fcd34d;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 20px 0 0;
+      font-size: 14px;
+      color: #1e293b;
+      line-height: 1.8;
+    }
+    .example-box .ex-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #b45309;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 6px;
+    }
+    .example-box .ex-q {
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 12px;
+    }
+    .example-box ol {
+      padding-left: 18px;
+      margin: 0;
+    }
+    .example-box ol li { margin-bottom: 6px; color: #475569; }
+    .example-box .ans {
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: #fff;
+      border-radius: 8px;
+      border-left: 3px solid #f59e0b;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .eq-block {
+      background: #f8fafc;
+      border-left: 3px solid #3b82f6;
+      border-radius: 0 10px 10px 0;
+      padding: 16px 24px;
+      margin: 14px 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+    .eq-block .cmt {
+      display: block;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #94a3b8;
+      text-align: left;
+    }
+
+    .regime-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    .regime-table th { background: #f8fafc; padding: 8px 14px; text-align: left; color: #64748b; font-weight: 600; border-bottom: 1px solid #e2e8f0; }
+    .regime-table td { padding: 9px 14px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    .regime-table tr:last-child td { border-bottom: none; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+    .divider {
+      width: 80px; height: 2px;
+      background: linear-gradient(90deg, transparent, #cbd5e1, transparent);
+      margin: 16px auto 0;
+    }
+    .example-section {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      padding: 60px 24px 40px;
+    }
+    .example-inner {
+      flex: 1;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      max-width: 640px; width: 100%;
+    }
+    .scroll-cta { text-align: center; padding: 20px 0 32px; }
+    .reveal-btn {
+      background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px;
+      color: #3b82f6; font-size: 15px; font-family: inherit;
+      padding: 14px 32px; cursor: pointer; width: auto;
+      display: inline-flex; flex-direction: column; align-items: center; gap: 8px;
+      transition: border-color .2s, color .2s;
+      animation: bounce 2s ease-in-out infinite;
+      box-shadow: 0 2px 8px rgba(59,130,246,.12);
+    }
+    .reveal-btn:hover { background: #fff; border-color: #3b82f6; color: #2563eb; }
+    .reveal-btn span { font-weight: 700; font-size: 16px; }
+    .reveal-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+    #calculator-section { display: none; }
+
+    @media (max-width: 720px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 인트로 섹션 -->
+<div class="intro">
+
+  <div class="intro-hero">
+    <h1>압력강하 계산</h1>
+    <p>공기가 원형 관을 흐를 때 발생하는 압력 손실을 단계별로 계산합니다.</p>
+  </div>
+
+  <div class="theory">
+
+    <!-- 배경: 팬·덕트 시스템 -->
+    <div class="theory-section">
+      <h2>0. 팬·덕트 시스템 (Fan &amp; Duct System)</h2>
+      <p>
+        이전 문단에서는 실내 환경 조건과 냉·난방 부하를 바탕으로 필요 <b>공기 유량 Q</b>를 결정하는 방법을 다뤘습니다.
+        유량이 결정되면, 그 공기를 실제로 이동시킬 경로와 동력을 설계해야 합니다.
+      </p>
+      <p>
+        공조 시스템은 <b>팬(Fan)</b>이 공기에 압력을 가해 <b>덕트(Duct)</b>를 통해 신선한 외기를 실내로 공급하고,
+        오염된 실내 공기를 외부로 배출합니다.
+        직선 구간을 <b>덕트</b>, 방향 전환·분기·유량 조절 등 덕트 사이를 잇는 모든 부품을 <b>피팅(Fitting)</b>이라 합니다.
+      </p>
+      <p>팬·덕트 시스템 설계에는 세 가지 핵심 과제가 있습니다.</p>
+      <table class="regime-table">
+        <thead><tr><th>#</th><th>설계 이슈</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr><td>①</td><td>압력 손실 계산</td><td>덕트·피팅의 마찰로 인한 압력강하 산출</td></tr>
+          <tr><td>②</td><td>팬 선정</td><td>전체 압력 손실을 보상할 팬 성능·효율 결정</td></tr>
+          <tr><td>③</td><td>공기 배분</td><td>말단 취출구에서 실내 공기가 균일하게 분포되도록 설계</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:12px;">
+        이 문단에서는 <b>① 직선 덕트의 압력 손실</b>을 다룹니다.
+        실제 덕트는 원형뿐 아니라 직사각형 단면도 많이 사용되는데,
+        이 경우 <b>상당 직경 D<sub>e</sub>(Hydraulic Diameter)</b>로 변환하면 원형 덕트와 동일한 방법으로 계산할 수 있습니다.
+      </p>
+      <div class="eq-block">
+        $$D_e = \frac{4A}{P} = \frac{2ab}{a+b}$$
+        <span class="cmt">A: 단면적 [m²] &nbsp;·&nbsp; P: 접수 길이(둘레) [m] &nbsp;·&nbsp; a, b: 사각 덕트의 두 변 길이 [m]</span>
+      </div>
+    </div>
+
+    <!-- 압력강하 -->
+    <div class="theory-section">
+      <h2>1. 압력강하 ΔP</h2>
+      <p>마찰계수를 구한 뒤 Darcy-Weisbach 방정식으로 압력강하를 계산합니다.</p>
+      <div class="eq-block">
+        $$\Delta P = f \cdot \frac{L}{D} \cdot \frac{\rho V^2}{2}$$
+        <span class="cmt">L: 관 길이 [m] &nbsp;·&nbsp; ρV²/2: 동압 [Pa]</span>
+      </div>
+      <p>결과 단위는 Pa(파스칼)이며, 직관, 단면 변화, 밸브 등 부속품에 의한 국부 손실은 포함되지 않습니다.</p>
+    </div>
+
+    <!-- 마찰계수 -->
+    <div class="theory-section">
+      <h2>2. Darcy 마찰계수 <i>f</i></h2>
+      <p><b>층류</b>에서는 이론적으로 정확한 Hagen-Poiseuille 식이 사용됩니다.</p>
+      <div class="eq-block">
+        $$f = \frac{64}{Re}$$
+      </div>
+      <p><b>난류</b>에서는 관 조도의 영향을 받으며, Colebrook-White 방정식으로 계산합니다. 이 방정식은 <i>f</i>에 대해 음함수(implicit)이므로 수치 반복법으로 풉니다.</p>
+      <div class="eq-block">
+        $$\frac{1}{\sqrt{f}} = -2.0 \log_{10}\!\left(\frac{\varepsilon/D}{3.7} + \frac{2.51}{Re\sqrt{f}}\right)$$
+        <span class="cmt">ε: 표면 조도 [m] &nbsp;·&nbsp; ε/D: 상대 조도 (무차원)</span>
+      </div>
+      <p>초기값으로 Swamee-Jain 명시식을 사용하고, 고정점 반복(fixed-point iteration)으로 수렴시킵니다.</p>
+      <p><b>천이 구역</b>(2,300 ≤ Re &lt; 4,000)에서는 유동이 불안정하여 마찰계수를 신뢰할 수 없으므로 계산을 수행하지 않습니다.</p>
+    </div>
+
+    <!-- Reynolds 수 -->
+    <div class="theory-section">
+      <h2>3. Reynolds 수</h2>
+      <p>유체의 관성력과 점성력의 비를 나타내는 무차원수입니다.</p>
+      <div class="eq-block">
+        $$Re = \frac{\rho \, V \, D}{\mu}$$
+        <span class="cmt">ρ: 밀도 [kg/m³] &nbsp;·&nbsp; V: 유속 [m/s] &nbsp;·&nbsp; D: 내경 [m] &nbsp;·&nbsp; μ: 점성계수 [Pa·s]</span>
+      </div>
+      <p>공기의 밀도 ρ와 점성계수 μ는 온도에 따라 변하므로, −10 °C ~ 50 °C 범위의 실험 데이터를 선형 보간하여 사용합니다.</p>
+    </div>
+
+  </div><!-- /.theory -->
+
+  <div class="divider"></div>
+
+</div><!-- /.intro -->
+
+<!-- 예제 -->
+<section class="example-section">
+  <div class="example-inner">
+    <div style="font-size:11px; color:#94a3b8; letter-spacing:.08em; text-transform:uppercase; margin-bottom:14px;">예제</div>
+    <h2 style="color:#3b82f6; font-size:20px; font-weight:700; margin-bottom:24px;">직선 덕트의 압력강하 계산</h2>
+
+    <div class="example-box" style="text-align:left; width:100%;">
+      <div class="ex-label">문제</div>
+      <div class="ex-q">
+        20 °C 공기의 유량이 0.5 m³/s일 때, 직경 300 mm의 직선 원형 금속판 덕트 15 m 구간에서의 압력강하를 계산하시오.
+      </div>
+    </div>
+
+    <p style="margin-top:16px; font-size:14px; color:#475569; line-height:1.8; width:100%;">공기 물성 (금속판 덕트 표면 조도 ε = 0.15 mm)</p>
+
+    <table class="regime-table" style="margin-top:8px; width:100%;">
+      <thead>
+        <tr>
+          <th>온도 [°C]</th>
+          <th>밀도 ρ [kg/m³]</th>
+          <th>점성계수 <span style="text-transform:none">μ</span> [<span style="text-transform:none">μ</span>Pa·s]</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>−10</td><td>1.3414</td><td>16.768</td></tr>
+        <tr><td>0</td><td>1.2922</td><td>17.238</td></tr>
+        <tr><td>10</td><td>1.2467</td><td>17.708</td></tr>
+        <tr><td>20</td><td>1.2041</td><td>18.178</td></tr>
+        <tr><td>30</td><td>1.1644</td><td>18.648</td></tr>
+        <tr><td>40</td><td>1.1272</td><td>19.118</td></tr>
+        <tr><td>50</td><td>1.0924</td><td>19.588</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="scroll-cta">
+    <button class="reveal-btn" onclick="openCalc()">
+      <span>풀이 보기</span>
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- 계산기 -->
+<div id="calculator-section">
+<div class="page-header">
+  <h1>압력강하 계산</h1>
+</div>
+
+<div class="layout">
+
+  <!-- 왼쪽 컬럼 -->
+  <div>
+    <div class="card">
+      <h2>입력값</h2>
+
+      <div class="field">
+        <label>공기 온도 T (°C)</label>
+        <input type="number" id="inp-t" value="20" step="any">
+        <div class="hint">범위: −10 °C ~ 50 °C</div>
+      </div>
+      <div class="vq-toggle">
+        <button id="btn-v" onclick="setMode('v')">유속 V (m/s)</button>
+        <button id="btn-q" onclick="setMode('q')" class="active">체적유량 Q (m³/s)</button>
+      </div>
+      <div class="field">
+        <label>유속 V (m/s)</label>
+        <input type="number" id="inp-v" value="" min="0" step="any" disabled>
+      </div>
+      <div class="field">
+        <label>체적유량 Q (m³/s)</label>
+        <input type="number" id="inp-q" value="0.5" min="0" step="any">
+      </div>
+      <div class="field">
+        <label>관 내경 D (m)</label>
+        <input type="number" id="inp-d" value="0.3" min="0.000001" step="any">
+      </div>
+      <div class="field">
+        <label>표면 조도 ε (m)</label>
+        <input type="number" id="inp-eps" value="0.00015" min="0" step="any">
+      </div>
+      <div class="field">
+        <label>관 길이 L (m)</label>
+        <input type="number" id="inp-l" value="15" min="0" step="any">
+      </div>
+
+      <button onclick="calculate()">계산하기</button>
+    </div>
+
+  </div>
+
+  <!-- 오른쪽: Moody 선도 -->
+  <div class="card">
+    <h2>Moody chart</h2>
+    <canvas id="moody" width="700" height="480"></canvas>
+  </div>
+
+</div>
+
+<!-- 결과 패널 (전체 너비 수평) -->
+<div class="result-row">
+  <div class="card">
+    <h2>결과</h2>
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="lbl">밀도 ρ (kg/m³)</div>
+        <div class="val" id="out-rho" style="font-size:16px;">—</div>
+      </div>
+      <div class="result-item">
+        <div class="lbl">점도 <span style="text-transform:none">&micro;</span> (<span style="text-transform:none">&micro;</span>Pa·s)</div>
+        <div class="val" id="out-mu" style="font-size:16px;">—</div>
+      </div>
+      <div class="result-item">
+        <div class="lbl">상대 조도 ε/D</div>
+        <div class="val" id="out-ed" style="font-size:15px; padding-top:4px;">—</div>
+      </div>
+      <div class="result-item">
+        <div class="lbl">유동 구역</div>
+        <div id="out-regime">—</div>
+      </div>
+      <div class="result-item">
+        <div class="lbl">Reynolds 수 Re</div>
+        <div class="val" id="out-re" style="font-size:18px;">—</div>
+      </div>
+      <div class="result-item">
+        <div class="lbl">마찰계수 f</div>
+        <div class="val" id="out-f">—</div>
+      </div>
+      <div class="result-item">
+        <div class="lbl">반복 횟수</div>
+        <div class="val" id="out-iter">—</div>
+      </div>
+      <div class="result-item" style="background:#eff6ff; border: 1.5px solid #3b82f6;">
+        <div class="lbl" style="color:#3b82f6;">압력강하 ΔP (Pa)</div>
+        <div class="val" id="out-dp" style="font-size:22px; color:#1d4ed8;">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><!-- /#calculator-section -->
+
+<script>
+/* ── 공기 물성 테이블 (온도순 오름차순) ── */
+const AIR_TABLE = [
+  { T: -10, rho: 1.3414, mu: 16.768 },
+  { T:   0, rho: 1.2922, mu: 17.238 },
+  { T:  10, rho: 1.2467, mu: 17.708 },
+  { T:  20, rho: 1.2041, mu: 18.178 },
+  { T:  30, rho: 1.1644, mu: 18.648 },
+  { T:  40, rho: 1.1272, mu: 19.118 },
+  { T:  50, rho: 1.0924, mu: 19.588 },
+];
+
+function airProps(T) {
+  const tbl = AIR_TABLE;
+  if (T <= tbl[0].T) return { rho: tbl[0].rho, mu: tbl[0].mu };
+  if (T >= tbl[tbl.length-1].T) { const e = tbl[tbl.length-1]; return { rho: e.rho, mu: e.mu }; }
+  for (let i = 0; i < tbl.length - 1; i++) {
+    if (T >= tbl[i].T && T <= tbl[i+1].T) {
+      const t = (T - tbl[i].T) / (tbl[i+1].T - tbl[i].T);
+      return {
+        rho: tbl[i].rho + t * (tbl[i+1].rho - tbl[i].rho),
+        mu:  tbl[i].mu  + t * (tbl[i+1].mu  - tbl[i].mu),
+      };
+    }
+  }
+}
+
+
+
+/* ── Colebrook 반복 (고정점 반복법) ── */
+function colebrook(Re, epD) {
+  if (Re <= 0 || epD < 0) return null;
+  if (Re < 2300) return { f: 64 / Re, iter: 0 };
+
+  // Swamee-Jain 초기값
+  let f = 0.25 / Math.pow(Math.log10(epD / 3.7 + 5.74 / Math.pow(Re, 0.9)), 2);
+
+  let iter = 0;
+  for (let i = 0; i < 300; i++) {
+    iter++;
+    const arg = epD / 3.7 + 2.51 / (Re * Math.sqrt(f));
+    if (arg <= 0) break;
+    const fNew = 1 / Math.pow(-2.0 * Math.log10(arg), 2);
+    if (Math.abs(fNew - f) < 1e-12) { f = fNew; break; }
+    f = fNew;
+  }
+  return { f, iter };
+}
+
+/* ── 계산 ── */
+let LAST = null;
+
+function calculate() {
+  const T   = parseFloat(document.getElementById('inp-t').value);
+  const D   = parseFloat(document.getElementById('inp-d').value);
+  const eps = parseFloat(document.getElementById('inp-eps').value);
+  const L   = parseFloat(document.getElementById('inp-l').value);
+  const A   = area();
+
+  /* 활성 모드에서 V 결정 */
+  let V;
+  if (vqMode === 'q') {
+    const Q = parseFloat(document.getElementById('inp-q').value);
+    if (isNaN(Q) || !A) return;
+    V = Q / A;
+    document.getElementById('inp-v').value = +V.toPrecision(6);
+  } else {
+    V = parseFloat(document.getElementById('inp-v').value);
+    if (isNaN(V) || !A) return;
+    document.getElementById('inp-q').value = +(V * A).toPrecision(6);
+  }
+
+  if (isNaN(T) || isNaN(V) || isNaN(D) || isNaN(eps) || V <= 0 || D <= 0 || eps < 0) return;
+
+  const { rho, mu } = airProps(T);          // 선형 보간
+  const mu_Pa = mu * 1e-6;                  // μPa·s → Pa·s
+  const Re = rho * V * D / mu_Pa;
+
+  const epD = eps / D;                      // 모두 m 단위
+
+  let regime, regimeKo;
+  if      (Re < 2300) { regime = 'laminar';   regimeKo = '층류 (Laminar)'; }
+  else if (Re < 4000) { regime = 'transitional'; regimeKo = '천이 구역'; }
+  else                { regime = 'turbulent'; regimeKo = '난류 (Turbulent)'; }
+
+  document.getElementById('out-rho').textContent  = rho.toFixed(4);
+  document.getElementById('out-mu').textContent   = mu.toFixed(3);
+  document.getElementById('out-re').textContent   = Math.round(Re).toLocaleString();
+  document.getElementById('out-re').className     = 'val ' + regime;
+  document.getElementById('out-regime').innerHTML = `<span class="badge ${regime}">${regimeKo}</span>`;
+
+  if (regime === 'transitional') {
+    document.getElementById('out-f').textContent    = '—';
+    document.getElementById('out-f').className      = 'val';
+    document.getElementById('out-ed').textContent   = '—';
+    document.getElementById('out-iter').textContent = '—';
+    document.getElementById('out-dp').textContent   = '—';
+    LAST = { Re, epD: null, f: null, regime };
+    drawMoody();
+    return;
+  }
+
+  const res = colebrook(Re, epD);
+  if (!res) return;
+  const { f, iter } = res;
+
+  const dP = isNaN(L) || L <= 0 ? null : f * (L / D) * (rho * V * V / 2);
+
+  document.getElementById('out-f').textContent    = f.toFixed(6);
+  document.getElementById('out-f').className      = 'val ' + regime;
+  document.getElementById('out-ed').textContent   = Re < 2300 ? '—' : epD.toExponential(3);
+  document.getElementById('out-iter').textContent = Re < 2300 ? '—' : iter + ' 회';
+  document.getElementById('out-dp').textContent   = dP != null ? dP.toFixed(2) : '—';
+
+  LAST = { Re, epD, f, regime };
+  drawMoody();
+}
+
+/* ── Moody 선도 ── */
+const EPD_LIST   = [0, 0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05];
+const EPD_COLORS = ['#94a3b8','#0ea5e9','#06b6d4','#10b981','#84cc16','#f59e0b','#f97316','#ef4444','#ec4899','#8b5cf6'];
+
+function drawMoody() {
+  const canvas = document.getElementById('moody');
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const ml = 72, mr = 115, mt = 30, mb = 58;
+  const pw = W - ml - mr, ph = H - mt - mb;
+
+  const ReMin = 500, ReMax = 1e8;
+  const fMin  = 0.007, fMax = 0.11;
+
+  function xp(Re) {
+    return ml + pw * (Math.log10(Re) - Math.log10(ReMin)) / (Math.log10(ReMax) - Math.log10(ReMin));
+  }
+  function yp(f) {
+    return mt + ph * (1 - (Math.log10(f) - Math.log10(fMin)) / (Math.log10(fMax) - Math.log10(fMin)));
+  }
+
+  /* 배경 */
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(ml, mt, pw, ph);
+
+  /* 그리드 */
+  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+  [1e3,2e3,4e3,1e4,2e4,4e4,1e5,2e5,4e5,1e6,2e6,4e6,1e7,2e7,4e7,1e8].forEach(Re => {
+    const x = xp(Re);
+    ctx.beginPath(); ctx.moveTo(x, mt); ctx.lineTo(x, mt+ph); ctx.stroke();
+  });
+  [0.008,0.009,0.01,0.012,0.014,0.016,0.018,0.02,0.025,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1].forEach(f => {
+    const y = yp(f);
+    if (y < mt || y > mt+ph) return;
+    ctx.beginPath(); ctx.moveTo(ml, y); ctx.lineTo(ml+pw, y); ctx.stroke();
+  });
+
+  /* 층류선 */
+  ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  let started = false;
+  for (let Re = ReMin; Re <= 2400; Re *= 1.03) {
+    const f = 64 / Re;
+    if (f < fMin || f > fMax) continue;
+    const x = xp(Re), y = yp(f);
+    if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  /* 천이 구역 */
+  ctx.fillStyle = 'rgba(251,191,36,.13)';
+  ctx.fillRect(xp(2300), mt, xp(4000) - xp(2300), ph);
+
+  /* Colebrook 곡선 */
+  EPD_LIST.forEach((epD, idx) => {
+    ctx.strokeStyle = EPD_COLORS[idx]; ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    let s = false;
+    for (let Re = 3800; Re <= ReMax * 1.001; Re *= 1.02) {
+      const res = colebrook(Re, epD);
+      if (!res) continue;
+      const { f } = res;
+      if (f < fMin || f > fMax) { s = false; continue; }
+      const x = xp(Re), y = yp(f);
+      if (!s) { ctx.moveTo(x, y); s = true; } else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    /* 오른쪽 레이블 */
+    const res = colebrook(ReMax, epD);
+    if (res && res.f >= fMin && res.f <= fMax) {
+      ctx.fillStyle = EPD_COLORS[idx];
+      ctx.font = '10px system-ui';
+      ctx.textAlign = 'left';
+      ctx.fillText(epD === 0 ? '0 (매끄러운 관)' : epD.toString(), xp(ReMax) + 6, yp(res.f) + 4);
+    }
+  });
+
+  /* 현재 ε/D 강조 곡선 */
+  if (LAST && LAST.epD != null && LAST.regime !== 'laminar') {
+    const curEpD = LAST.epD;
+    const isStd = EPD_LIST.some(v => Math.abs(v - curEpD) < 1e-10);
+    if (!isStd) {
+      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2;
+      ctx.setLineDash([6, 3]);
+      ctx.beginPath();
+      let s = false;
+      for (let Re = 3800; Re <= ReMax * 1.001; Re *= 1.02) {
+        const res = colebrook(Re, curEpD);
+        if (!res) continue;
+        const { f } = res;
+        if (f < fMin || f > fMax) { s = false; continue; }
+        const x = xp(Re), y = yp(f);
+        if (!s) { ctx.moveTo(x, y); s = true; } else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      /* 오른쪽 레이블 */
+      const res = colebrook(ReMax, curEpD);
+      if (res && res.f >= fMin && res.f <= fMax) {
+        ctx.fillStyle = '#1e293b'; ctx.font = 'bold 10px system-ui'; ctx.textAlign = 'left';
+        ctx.fillText(curEpD.toExponential(2), xp(ReMax) + 6, yp(res.f) + 4);
+      }
+    }
+  }
+
+  /* 현재 결과 점 */
+  if (LAST) {
+    const { Re, f, regime } = LAST;
+    if (Re >= ReMin && Re <= ReMax && f != null && f >= fMin && f <= fMax) {
+      const x = xp(Re), y = yp(f);
+
+      ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = 1;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(x, mt); ctx.lineTo(x, mt+ph); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ml, y); ctx.lineTo(ml+pw, y); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2);
+      ctx.fillStyle = '#1e293b'; ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2);
+      ctx.fillStyle = regime === 'laminar' ? '#22c55e' : '#ef4444';
+      ctx.fill();
+
+      ctx.fillStyle = '#1e293b'; ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'left';
+      ctx.fillText(`f = ${f.toFixed(5)}`, x + 13, y - 5);
+      ctx.fillStyle = '#64748b'; ctx.font = '11px system-ui';
+      ctx.fillText(`Re = ${Re.toExponential(2)}`, x + 13, y + 11);
+    }
+  }
+
+  /* 테두리 */
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(ml, mt, pw, ph);
+
+  /* X축 눈금 레이블 */
+  ctx.fillStyle = '#475569'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+  [1e3,1e4,1e5,1e6,1e7,1e8].forEach(Re => {
+    const exp = Math.log10(Re);
+    ctx.fillText('10' + toSup(exp), xp(Re), mt + ph + 18);
+  });
+  ctx.font = '13px system-ui';
+  ctx.fillText('Reynolds 수  Re', ml + pw/2, H - 8);
+
+  /* Y축 눈금 레이블 */
+  ctx.textAlign = 'right'; ctx.font = '10px system-ui'; ctx.fillStyle = '#475569';
+  [0.008,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1].forEach(f => {
+    const y = yp(f);
+    if (y < mt || y > mt+ph) return;
+    ctx.fillText(f.toFixed(3), ml - 6, y + 4);
+  });
+  ctx.save();
+  ctx.translate(14, mt + ph/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign = 'center'; ctx.font = '13px system-ui';
+  ctx.fillText('마찰계수  f  (Darcy)', 0, 0);
+  ctx.restore();
+
+  /* 층류 레이블 */
+  ctx.fillStyle = '#6366f1'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText('층류  f = 64/Re', ml + 6, mt + 16);
+
+  /* 천이 레이블 */
+  ctx.save();
+  ctx.translate((xp(2300)+xp(4000))/2, mt + ph/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign = 'center'; ctx.font = '9px system-ui'; ctx.fillStyle = 'rgba(161,100,0,.7)';
+  ctx.fillText('천이 구역', 0, 0);
+  ctx.restore();
+
+  /* ε/D 레이블 */
+  ctx.fillStyle = '#64748b'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText('ε/D', xp(ReMax) + 6, mt + 16);
+}
+
+function toSup(n) {
+  return String(n).split('').map(c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[parseInt(c)] || c).join('');
+}
+
+function area() {
+  const D = parseFloat(document.getElementById('inp-d').value);
+  return isNaN(D) || D <= 0 ? null : Math.PI * D * D / 4;
+}
+
+let vqMode = 'q';
+function setMode(mode) {
+  vqMode = mode;
+  document.getElementById('inp-v').disabled = mode !== 'v';
+  document.getElementById('inp-q').disabled = mode !== 'q';
+  document.getElementById('btn-v').classList.toggle('active', mode === 'v');
+  document.getElementById('btn-q').classList.toggle('active', mode === 'q');
+}
+
+/* 휠 방지 */
+['inp-t','inp-v','inp-q','inp-d','inp-eps','inp-l'].forEach(id => {
+  document.getElementById(id).addEventListener('wheel', e => e.preventDefault(), { passive: false });
+});
+
+drawMoody();
+
+function openCalc() {
+  const sec = document.getElementById('calculator-section');
+  sec.style.display = 'block';
+  sec.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
