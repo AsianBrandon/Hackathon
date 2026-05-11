@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>기역자 렌치 – X축 회전</title>
+  <script>(function(){document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark';})();</script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
@@ -13,9 +14,22 @@
     });"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #e8edf3; font-family: system-ui, sans-serif; }
+    body { background: #e8edf3; font-family: system-ui, sans-serif; transition: background .25s; }
+    html[data-theme="dark"] body { background: #0f1117; }
     body.calc-open { overflow: hidden; }
     canvas { display: block; }
+
+    #theme-btn {
+      position: fixed; top: 16px; right: 20px; z-index: 300;
+      background: rgba(255,255,255,.9); border: 1px solid rgba(0,0,0,.15);
+      border-radius: 8px; padding: 5px 10px;
+      cursor: pointer; font-size: 15px; line-height: 1;
+      transition: background .2s;
+    }
+    html[data-theme="dark"] #theme-btn {
+      background: #1e2a3a; border-color: #2d3f55; color: #e8eaf0;
+    }
+    #theme-btn:hover { opacity: .8; }
 
     /* ─── 본문 ─── */
     #main-content {
@@ -25,19 +39,24 @@
       color: #1e293b;
       line-height: 1.8;
     }
+    html[data-theme="dark"] #main-content { color: #e8eaf0; }
     #main-content h1 {
       font-size: 2rem; font-weight: 800; letter-spacing: -.02em;
       color: #0f172a; margin-bottom: 10px;
     }
+    html[data-theme="dark"] #main-content h1 { color: #e8eaf0; }
     #main-content .subtitle {
       font-size: 1rem; color: #64748b; margin-bottom: 48px;
     }
+    html[data-theme="dark"] #main-content .subtitle { color: #8892a4; }
     #main-content h2 {
       font-size: 1.15rem; font-weight: 700; color: #1e3a5f;
       margin: 40px 0 12px; border-left: 4px solid #3b82f6;
       padding-left: 12px;
     }
+    html[data-theme="dark"] #main-content h2 { color: #60a5fa; }
     #main-content p { color: #334155; margin-bottom: 14px; font-size: .97rem; }
+    html[data-theme="dark"] #main-content p { color: #8892a4; }
     #main-content .formula-box {
       background: rgba(59,130,246,.06);
       border: 1px solid rgba(59,130,246,.2);
@@ -47,6 +66,7 @@
       overflow-x: auto;
       color: #1e3a5f;
     }
+    html[data-theme="dark"] #main-content .formula-box { background: rgba(59,130,246,.1); color: #93c5fd; }
     #main-content .fml-label {
       font-size: .78rem; font-weight: 700; letter-spacing: .07em;
       text-transform: uppercase; color: #1d4ed8; margin-bottom: 2px;
@@ -61,6 +81,7 @@
       padding: 14px 22px 12px;
       margin: 14px 0;
     }
+    html[data-theme="dark"] #main-content .hint-box { background: rgba(245,158,11,.09); }
     #main-content .hint-num {
       font-size: .78rem; font-weight: 800; letter-spacing: .08em;
       text-transform: uppercase; color: #b45309; margin-bottom: 6px;
@@ -80,6 +101,7 @@
       padding: 14px 22px 12px;
       margin: 16px 0;
     }
+    html[data-theme="dark"] #main-content .ex-given { background: rgba(99,102,241,.1); }
     #main-content .ex-given .fml-label { color: #4338ca; }
     #main-content .ex-given td:first-child { color: #4338ca; font-weight: 600; width: 160px; }
     #main-content .ex-given td { border-bottom: 1px solid rgba(99,102,241,.12); padding: 5px 10px; }
@@ -104,9 +126,11 @@
       background: #dbeafe; color: #1e3a5f; font-weight: 600;
       padding: 8px 12px; text-align: left;
     }
+    html[data-theme="dark"] #main-content th { background: rgba(59,130,246,.15); color: #93c5fd; }
     #main-content td {
       padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #334155;
     }
+    html[data-theme="dark"] #main-content td { border-bottom-color: #1e2a3a; color: #8892a4; }
     #main-content tr:last-child td { border-bottom: none; }
 
     /* ─── 계산기 열기 버튼 ─── */
@@ -132,7 +156,9 @@
       z-index: 200;
       background: #e8edf3;
       overflow: hidden;
+      transition: background .25s;
     }
+    html[data-theme="dark"] #calc-modal { background: #0f1117; }
     #calc-modal.open { display: block; }
 
     #close-calc-btn {
@@ -336,6 +362,8 @@
   </style>
 </head>
 <body>
+
+  <button id="theme-btn" onclick="toggleTheme()" title="테마 전환"><span id="ti"></span></button>
 
   <!-- ═══════════════ 본문 ═══════════════ -->
   <main id="main-content">
@@ -654,6 +682,17 @@
   </div><!-- #calc-modal -->
 
 
+  <script>
+  function toggleTheme() {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('theme', next);
+    document.getElementById('ti').textContent = next === 'dark' ? '☀️' : '🌙';
+    if (window._themeChanged) window._themeChanged(next);
+  }
+  document.getElementById('ti').textContent = (document.documentElement.dataset.theme === 'dark') ? '☀️' : '🌙';
+  </script>
+
   <script type="importmap">
   {
     "imports": {
@@ -677,8 +716,17 @@
 
     /* ─── Scene ─── */
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xe8edf3);
-    scene.fog = new THREE.FogExp2(0xe8edf3, 0.4);
+    const BG_DARK = 0x0f1117, BG_LIGHT = 0xe8edf3;
+    function sceneBg() { return document.documentElement.dataset.theme === 'dark' ? BG_DARK : BG_LIGHT; }
+    scene.background = new THREE.Color(sceneBg());
+    scene.fog = new THREE.FogExp2(sceneBg(), 0.4);
+
+    window._themeChanged = function(theme) {
+      const bg = theme === 'dark' ? BG_DARK : BG_LIGHT;
+      scene.background.setHex(bg);
+      scene.fog.color.setHex(bg);
+      applyN();
+    };
 
     /* ─── Camera ─── */
     const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.001, 10);
@@ -892,15 +940,19 @@
       mCtx.fillStyle = 'rgba(0,0,0,0)';
       mCtx.fillRect(0, 0, W, H);
 
+      const dark = document.documentElement.dataset.theme === 'dark';
+      const axColor = dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+      const lblColor = dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)';
+
       // σ 축 (수평)
-      mCtx.strokeStyle = 'rgba(0,0,0,0.2)';
+      mCtx.strokeStyle = axColor;
       mCtx.lineWidth = 1;
       mCtx.beginPath(); mCtx.moveTo(10, cy); mCtx.lineTo(W - 10, cy); mCtx.stroke();
       // τ 축 (수직)
       mCtx.beginPath(); mCtx.moveTo(cx, 10); mCtx.lineTo(cx, H - 10); mCtx.stroke();
 
       // 축 레이블
-      mCtx.fillStyle = 'rgba(0,0,0,0.55)';
+      mCtx.fillStyle = lblColor;
       mCtx.font = '11px system-ui';
       mCtx.fillText('σ', W - 16, cy - 6);
       mCtx.fillText('τ', cx + 6, 18);
@@ -979,30 +1031,37 @@
 
       const plotScale = W * 0.42;  // ±1 → pixels
 
+      const yDark = document.documentElement.dataset.theme === 'dark';
+      const yAxColor  = yDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+      const yLblColor = yDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)';
+      const yTickColor = yDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
+      const yNumColor  = yDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
+
       // 축
-      yCtx.strokeStyle = 'rgba(0,0,0,0.2)';
+      yCtx.strokeStyle = yAxColor;
       yCtx.lineWidth = 1;
       yCtx.beginPath(); yCtx.moveTo(10, cy); yCtx.lineTo(W-10, cy); yCtx.stroke();
       yCtx.beginPath(); yCtx.moveTo(cx, 10); yCtx.lineTo(cx, H-10); yCtx.stroke();
 
       // 축 레이블
-      yCtx.fillStyle = 'rgba(0,0,0,0.55)';
+      yCtx.fillStyle = yLblColor;
       yCtx.font = '11px system-ui';
       yCtx.fillText('σ₁/Sc', W-42, cy-6);
       yCtx.fillText('σ₂/Sc', cx+5, 16);
 
       // ±1 눈금
-      yCtx.strokeStyle = 'rgba(0,0,0,0.15)';
+      yCtx.strokeStyle = yTickColor;
       yCtx.lineWidth = 1;
       yCtx.font = '9px system-ui';
       [-1, 1].forEach(t => {
         const px = cx + t * plotScale;
         yCtx.beginPath(); yCtx.moveTo(px, cy-4); yCtx.lineTo(px, cy+4); yCtx.stroke();
-        yCtx.fillStyle = 'rgba(0,0,0,0.4)';
+        yCtx.fillStyle = yNumColor;
         yCtx.fillText(t > 0 ? '1' : '-1', px - (t > 0 ? 3 : 7), cy + 14);
 
         const py = cy - t * plotScale;
         yCtx.beginPath(); yCtx.moveTo(cx-4, py); yCtx.lineTo(cx+4, py); yCtx.stroke();
+        yCtx.fillStyle = yNumColor;
         yCtx.fillText(t > 0 ? '1' : '-1', cx + 6, py + 4);
       });
 

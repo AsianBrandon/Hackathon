@@ -4,21 +4,55 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>습공기선도</title>
+  <script>(function(){document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark';})();</script>
   <style>
+    :root {
+      --bg: #0f1117;
+      --text: #e8eaf0;
+      --text-muted: #8892a4;
+      --border: #1e2a3a;
+      --info-bg: rgba(20,25,32,.96);
+      --info-border: #1e2a3a;
+      --info-label: #8892a4;
+      --info-val: #e8eaf0;
+      --btn-bg: #1e2a3a;
+    }
+    html[data-theme="light"] {
+      --bg: #f0f4f8;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+      --info-bg: rgba(255,255,255,.95);
+      --info-border: #cbd5e1;
+      --info-label: #64748b;
+      --info-val: #0f172a;
+      --btn-bg: #e2e8f0;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: #f0f4f8;
+      background: var(--bg);
+      color: var(--text);
       font-family: 'Segoe UI', system-ui, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
       padding: 18px;
+      transition: background .25s, color .25s;
     }
+    #theme-btn {
+      position: fixed; top: 16px; right: 20px; z-index: 100;
+      background: var(--btn-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 5px 10px;
+      cursor: pointer; font-size: 15px; line-height: 1;
+      transition: background .2s;
+    }
+    #theme-btn:hover { opacity: .8; }
     h1 {
       font-size: 20px;
       font-weight: 700;
-      color: #1e293b;
+      color: var(--text);
       margin-bottom: 12px;
       letter-spacing: .04em;
     }
@@ -29,37 +63,35 @@
     canvas {
       display: block;
       cursor: crosshair;
-      background: #fff;
       border-radius: 10px;
-      box-shadow: 0 4px 24px rgba(0,0,0,.12);
+      box-shadow: 0 4px 24px rgba(0,0,0,.2);
     }
     #info {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(255,255,255,.95);
-      border: 1px solid #cbd5e1;
+      top: 10px; right: 10px;
+      background: var(--info-bg);
+      border: 1px solid var(--info-border);
       border-radius: 10px;
       padding: 12px 16px;
       font-size: 13px;
-      color: #1e293b;
+      color: var(--text);
       line-height: 1.8;
       pointer-events: none;
       min-width: 180px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.1);
+      box-shadow: 0 2px 10px rgba(0,0,0,.2);
       display: none;
     }
-    #info .title { font-weight: 700; font-size: 12px; color: #64748b; margin-bottom: 4px; letter-spacing:.05em; }
+    #info .title { font-weight: 700; font-size: 12px; color: var(--info-label); margin-bottom: 4px; letter-spacing:.05em; }
     #info .val { display: flex; justify-content: space-between; gap: 12px; }
-    #info .val span:first-child { color: #64748b; }
-    #info .val span:last-child { font-weight: 600; color: #0f172a; }
+    #info .val span:first-child { color: var(--info-label); }
+    #info .val span:last-child { font-weight: 600; color: var(--info-val); }
     #legend {
       display: flex;
       flex-wrap: wrap;
       gap: 10px 20px;
       margin-top: 12px;
       font-size: 12px;
-      color: #475569;
+      color: var(--text-muted);
       justify-content: center;
     }
     .leg-item { display: flex; align-items: center; gap: 6px; }
@@ -71,6 +103,7 @@
   </style>
 </head>
 <body>
+<button id="theme-btn" onclick="toggleTheme()" title="테마 전환"><span id="ti"></span></button>
 <h1>습공기선도 (Psychrometric Chart)</h1>
 <div id="wrap">
   <canvas id="chart"></canvas>
@@ -85,48 +118,69 @@
   </div>
 </div>
 <div id="legend">
-  <div class="leg-item"><div class="leg-line" style="background:#1d4ed8;height:2px;border-top:2px dashed #1d4ed8;background:none;width:28px;border-bottom:none;border-left:none;border-right:none;"></div>상대습도선</div>
+  <div class="leg-item"><div class="leg-line" style="border-top:2px dashed #1d4ed8;background:none;width:28px;height:0;"></div>상대습도선</div>
   <div class="leg-item"><div class="leg-line" style="background:#0891b2;opacity:.7;"></div>습구온도선</div>
-  <div class="leg-item"><div class="leg-line" style="background:#7c3aed;opacity:.6;border-top:none;border-bottom:none;height:2px;background:repeating-linear-gradient(90deg,#7c3aed 0,#7c3aed 4px,transparent 4px,transparent 8px);"></div>엔탈피선</div>
+  <div class="leg-item"><div class="leg-line" style="background:repeating-linear-gradient(90deg,#7c3aed 0,#7c3aed 4px,transparent 4px,transparent 8px);height:2px;"></div>엔탈피선</div>
   <div class="leg-item"><div class="leg-line" style="background:#16a34a;height:3px;"></div>포화곡선 (100% RH)</div>
 </div>
 
 <script>
-// ─── Psychrometric functions ───────────────────────────────────────────────
-const P_atm = 101.325; // kPa
+/* ── 테마 ── */
+function toggleTheme() {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('theme', next);
+  document.getElementById('ti').textContent = next === 'dark' ? '☀️' : '🌙';
+  draw();
+}
+document.getElementById('ti').textContent = (document.documentElement.dataset.theme === 'dark') ? '☀️' : '🌙';
 
-function pSat(T) { // Magnus formula, T in °C, returns kPa
+function isDark() { return document.documentElement.dataset.theme !== 'light'; }
+
+function chartColors() {
+  const dark = isDark();
+  return {
+    bg0: dark ? '#141920' : '#f8fbff',
+    bg1: dark ? '#0f1117' : '#eef4fb',
+    grid: dark ? '#1e2a3a' : '#e2e8f0',
+    axis: dark ? '#4a5568' : '#334155',
+    text: dark ? '#8892a4' : '#1e293b',
+    title: dark ? '#e8eaf0' : '#1e293b',
+    rh: dark ? 'rgba(96,165,250,' : 'rgba(29,78,216,',
+    wetBulb: dark ? 'rgba(6,182,212,' : 'rgba(8,145,178,',
+    enthalpy: dark ? 'rgba(167,139,250,' : 'rgba(124,58,237,',
+    sat: '#16a34a',
+  };
+}
+
+// ─── Psychrometric functions ───────────────────────────────────────────────
+const P_atm = 101.325;
+
+function pSat(T) {
   return 0.6112 * Math.exp(17.67 * T / (T + 243.5));
 }
 function wSat(T) {
   const ps = pSat(T);
-  return 0.622 * ps / (P_atm - ps); // kg/kg
+  return 0.622 * ps / (P_atm - ps);
 }
-function wFromRH(T, rh) { // rh: 0..1
+function wFromRH(T, rh) {
   const ps = pSat(T);
   const pv = rh * ps;
   return 0.622 * pv / (P_atm - pv);
 }
 function rhFromW(T, W) {
-  const ws = wSat(T);
-  return W / ws;
+  return W / wSat(T);
 }
-function enthalpy(T, W) { // kJ/kg dry air
+function enthalpy(T, W) {
   return 1.006 * T + W * (2501 + 1.86 * T);
 }
-// Wet-bulb from T and W (psychrometric equation, Sprung formula)
 function wetBulbFromTW(T, W) {
-  // Iterate: W = Wsat(Twb) - 6.6e-4*(1+0.00115*Twb)*(T-Twb)*P  (Sprung)
-  // Simpler psychrometric: W = Wsat(Twb) - A*(T-Twb)  where A≈6.66e-4 /°C (sling psychrometer)
-  // Use adiabatic saturation equation:
-  // W = Wsat(Twb) - Cpa*(T-Twb)/(2501 - 2.381*Twb)  [ASHRAE]
   let Twb = T;
   for (let i = 0; i < 60; i++) {
     const ws = wSat(Twb);
     const W_calc = ws - 1.006 * (T - Twb) / (2501 - 2.381 * Twb);
     const err = W_calc - W;
     if (Math.abs(err) < 1e-9) break;
-    // derivative w.r.t. Twb
     const dws = wSat(Twb + 0.01);
     const W2 = dws - 1.006 * (T - (Twb + 0.01)) / (2501 - 2.381 * (Twb + 0.01));
     const df = (W2 - W_calc) / 0.01;
@@ -134,11 +188,9 @@ function wetBulbFromTW(T, W) {
   }
   return Twb;
 }
-// W on constant wet-bulb line: W = Wsat(Twb) - Cpa*(T-Twb)/(2501-2.381*Twb)
 function wOnWetBulbLine(T, Twb) {
   return wSat(Twb) - 1.006 * (T - Twb) / (2501 - 2.381 * Twb);
 }
-// Dew point: T at which W = Wsat(Td), i.e., Td such that wSat(Td)=W
 function dewPoint(W) {
   let Td = 20;
   for (let i = 0; i < 60; i++) {
@@ -161,7 +213,7 @@ const ML = 68, MR = 28, MT = 36, MB = 52;
 const cW = W - ML - MR, cH = H - MT - MB;
 
 const T_MIN = -5, T_MAX = 50;
-const W_MIN = 0,  W_MAX = 0.030; // kg/kg
+const W_MIN = 0,  W_MAX = 0.030;
 
 function tx(T) { return ML + (T - T_MIN) / (T_MAX - T_MIN) * cW; }
 function ty(W) { return MT + cH - (W - W_MIN) / (W_MAX - W_MIN) * cH; }
@@ -179,23 +231,21 @@ function clip(fn) {
 
 // ─── Draw ─────────────────────────────────────────────────────────────────
 function draw() {
+  const C = chartColors();
   ctx.clearRect(0, 0, W, H);
 
-  // background gradient
   const grad = ctx.createLinearGradient(ML, MT, ML + cW, MT + cH);
-  grad.addColorStop(0, '#f8fbff');
-  grad.addColorStop(1, '#eef4fb');
+  grad.addColorStop(0, C.bg0);
+  grad.addColorStop(1, C.bg1);
   ctx.fillStyle = grad;
   ctx.fillRect(ML, MT, cW, cH);
 
   // ── Grid ──────────────────────────────────────────────────────────────
-  ctx.strokeStyle = '#e2e8f0';
+  ctx.strokeStyle = C.grid;
   ctx.lineWidth = 1;
-  // vertical (T)
   for (let T = Math.ceil(T_MIN / 5) * 5; T <= T_MAX; T += 5) {
     ctx.beginPath(); ctx.moveTo(tx(T), MT); ctx.lineTo(tx(T), MT + cH); ctx.stroke();
   }
-  // horizontal (W)
   for (let w = 0; w <= W_MAX + 1e-9; w += 0.002) {
     ctx.beginPath(); ctx.moveTo(ML, ty(w)); ctx.lineTo(ML + cW, ty(w)); ctx.stroke();
   }
@@ -204,7 +254,7 @@ function draw() {
   clip(() => {
     ctx.setLineDash([4, 5]);
     ctx.lineWidth = 0.9;
-    ctx.strokeStyle = 'rgba(124,58,237,0.45)';
+    ctx.strokeStyle = C.enthalpy + '0.45)';
     for (let h = -10; h <= 120; h += 10) {
       ctx.beginPath();
       let first = true;
@@ -222,7 +272,7 @@ function draw() {
   // ── Wet-bulb lines ────────────────────────────────────────────────────
   clip(() => {
     ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(8,145,178,0.55)';
+    ctx.strokeStyle = C.wetBulb + '0.55)';
     for (let Twb = -5; Twb <= 45; Twb += 5) {
       ctx.beginPath();
       let first = true;
@@ -242,7 +292,7 @@ function draw() {
     ctx.setLineDash([6, 4]);
     for (const rh of rhLevels) {
       ctx.lineWidth = rh === 50 ? 1.4 : 1;
-      ctx.strokeStyle = `rgba(29,78,216,${0.35 + rh * 0.004})`;
+      ctx.strokeStyle = C.rh + (0.35 + rh * 0.004) + ')';
       ctx.beginPath();
       let first = true;
       for (let T = T_MIN; T <= T_MAX; T += 0.3) {
@@ -259,7 +309,7 @@ function draw() {
   // ── Saturation curve (100% RH) ────────────────────────────────────────
   clip(() => {
     ctx.lineWidth = 2.5;
-    ctx.strokeStyle = '#16a34a';
+    ctx.strokeStyle = C.sat;
     ctx.beginPath();
     let first = true;
     for (let T = T_MIN; T <= T_MAX; T += 0.2) {
@@ -274,26 +324,24 @@ function draw() {
   // ── Labels on RH curves ───────────────────────────────────────────────
   ctx.font = '11px system-ui';
   for (const rh of rhLevels) {
-    // Find a good label position: T near T_MAX where w is in range
     for (let T = T_MAX; T >= T_MIN; T -= 1) {
       const w = wFromRH(T, rh / 100);
       if (w >= W_MIN && w <= W_MAX - 0.001 && tx(T) < ML + cW - 2 && ty(w) > MT + 2) {
-        ctx.fillStyle = 'rgba(29,78,216,0.75)';
+        ctx.fillStyle = C.rh + '0.75)';
         ctx.fillText(`${rh}%`, tx(T) + 2, ty(w) - 3);
         break;
       }
     }
   }
-  // 100% RH label
-  ctx.fillStyle = '#16a34a';
+  ctx.fillStyle = C.sat;
   ctx.font = 'bold 11px system-ui';
   ctx.fillText('100%', tx(29) + 3, ty(wSat(29)) - 4);
 
   // ── Wet-bulb labels ───────────────────────────────────────────────────
   ctx.font = '10px system-ui';
-  ctx.fillStyle = 'rgba(8,145,178,0.8)';
+  ctx.fillStyle = C.wetBulb + '0.8)';
   for (let Twb = 0; Twb <= 45; Twb += 5) {
-    const w = wOnWetBulbLine(Twb, Twb); // on saturation curve
+    const w = wOnWetBulbLine(Twb, Twb);
     if (w < W_MIN || w > W_MAX) continue;
     const px = tx(Twb), py = ty(w);
     if (px < ML + 2 || px > ML + cW - 2) continue;
@@ -306,14 +354,13 @@ function draw() {
 
   // ── Enthalpy labels ───────────────────────────────────────────────────
   ctx.font = '9.5px system-ui';
-  ctx.fillStyle = 'rgba(124,58,237,0.65)';
+  ctx.fillStyle = C.enthalpy + '0.65)';
   for (let h = 10; h <= 120; h += 10) {
     const T = T_MIN;
     const w = (h - 1.006 * T) / (2501 + 1.86 * T);
     if (w >= W_MIN && w <= W_MAX) {
       ctx.fillText(`${h}`, tx(T) - 26, ty(w) + 3);
     } else {
-      // find w=W_MAX intersection
       const T_edge = (h - 2501 * W_MAX) / (1.006 + 1.86 * W_MAX);
       if (T_edge >= T_MIN && T_edge <= T_MAX) {
         ctx.fillText(`${h}`, tx(T_edge) - 2, ty(W_MAX) - 3);
@@ -322,15 +369,14 @@ function draw() {
   }
 
   // ── Axes ──────────────────────────────────────────────────────────────
-  ctx.strokeStyle = '#334155';
+  ctx.strokeStyle = C.axis;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(ML, MT); ctx.lineTo(ML, MT + cH);
   ctx.lineTo(ML + cW, MT + cH);
   ctx.stroke();
 
-  // X ticks & labels (dry-bulb temp)
-  ctx.fillStyle = '#1e293b';
+  ctx.fillStyle = C.text;
   ctx.font = '12px system-ui';
   ctx.textAlign = 'center';
   for (let T = Math.ceil(T_MIN / 5) * 5; T <= T_MAX; T += 5) {
@@ -339,7 +385,6 @@ function draw() {
     ctx.fillText(T === 0 ? '0' : `${T}`, x, MT + cH + 17);
   }
 
-  // Y ticks & labels (humidity ratio g/kg)
   ctx.textAlign = 'right';
   for (let w = 0; w <= W_MAX + 1e-9; w += 0.002) {
     const y = ty(w);
@@ -347,8 +392,7 @@ function draw() {
     ctx.fillText((w * 1000).toFixed(0), ML - 8, y + 4);
   }
 
-  // Axis titles
-  ctx.fillStyle = '#0f172a';
+  ctx.fillStyle = C.title;
   ctx.font = 'bold 13px system-ui';
   ctx.textAlign = 'center';
   ctx.fillText('건구온도 T_db (°C)', ML + cW / 2, H - 8);
@@ -359,10 +403,9 @@ function draw() {
   ctx.fillText('절대습도 W (g/kg dry air)', 0, 0);
   ctx.restore();
 
-  // Chart title
   ctx.font = 'bold 15px system-ui';
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#1e293b';
+  ctx.fillStyle = C.title;
   ctx.fillText('습공기선도  (P = 101.325 kPa)', ML + cW / 2, MT - 14);
 }
 
@@ -398,7 +441,6 @@ canvas.addEventListener('mousemove', e => {
   const Twb = wetBulbFromTW(T, wVal);
   const Td = dewPoint(wVal);
 
-  // redraw + crosshair overlay
   draw();
   ctx.save();
   ctx.setLineDash([4, 3]);
@@ -407,7 +449,6 @@ canvas.addEventListener('mousemove', e => {
   ctx.beginPath(); ctx.moveTo(mx, MT); ctx.lineTo(mx, MT + cH); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(ML, my); ctx.lineTo(ML + cW, my); ctx.stroke();
   ctx.setLineDash([]);
-  // dot
   ctx.beginPath();
   ctx.arc(mx, my, 5, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(239,68,68,0.85)';
@@ -417,7 +458,6 @@ canvas.addEventListener('mousemove', e => {
   ctx.stroke();
   ctx.restore();
 
-  // info panel
   document.getElementById('i-t').textContent   = `${T.toFixed(1)} °C`;
   document.getElementById('i-w').textContent   = `${(wVal * 1000).toFixed(2)} g/kg`;
   document.getElementById('i-rh').textContent  = `${(rh * 100).toFixed(1)} %`;
