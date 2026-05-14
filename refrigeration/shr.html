@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SHR & 유량 계산 — 냉동공조</title>
-  <script>(function(){document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark';})();</script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
@@ -15,44 +14,39 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #e8edf3; font-family: system-ui, sans-serif; transition: background .25s; }
-    html[data-theme="dark"] body { background: #0f1117; }
+    
     body.calc-open { overflow: hidden; }
 
-    #theme-btn {
-      position: fixed; top: 16px; right: 20px; z-index: 300;
-      background: rgba(255,255,255,.9); border: 1px solid rgba(0,0,0,.15);
-      border-radius: 8px; padding: 5px 10px;
-      cursor: pointer; font-size: 15px; line-height: 1; transition: background .2s;
-    }
-    html[data-theme="dark"] #theme-btn { background: #1e2a3a; border-color: #2d3f55; color: #e8eaf0; }
-    #theme-btn:hover { opacity: .8; }
+    
+    
+    
 
     /* ─── 본문 ─── */
     #main-content {
       max-width: 780px; margin: 0 auto; padding: 64px 28px 120px;
       color: #1e293b; line-height: 1.8;
     }
-    html[data-theme="dark"] #main-content { color: #e8eaf0; }
+    
     #main-content h1 {
       font-size: 2rem; font-weight: 800; letter-spacing: -.02em;
       color: #0f172a; margin-bottom: 10px;
     }
-    html[data-theme="dark"] #main-content h1 { color: #e8eaf0; }
+    
     #main-content .subtitle { font-size: 1rem; color: #64748b; margin-bottom: 48px; }
-    html[data-theme="dark"] #main-content .subtitle { color: #8892a4; }
+    
     #main-content h2 {
       font-size: 1.15rem; font-weight: 700; color: #1e3a5f;
       margin: 40px 0 12px; border-left: 4px solid #3b82f6; padding-left: 12px;
     }
-    html[data-theme="dark"] #main-content h2 { color: #60a5fa; }
+    
     #main-content p { color: #334155; margin-bottom: 14px; font-size: .97rem; }
-    html[data-theme="dark"] #main-content p { color: #8892a4; }
+    
     #main-content .formula-box {
       background: rgba(59,130,246,.06); border: 1px solid rgba(59,130,246,.2);
       border-radius: 10px; padding: 14px 22px 10px; margin: 16px 0;
       overflow-x: auto; color: #1e3a5f;
     }
-    html[data-theme="dark"] #main-content .formula-box { background: rgba(59,130,246,.1); color: #93c5fd; }
+    
     #main-content .fml-label {
       font-size: .78rem; font-weight: 700; letter-spacing: .07em;
       text-transform: uppercase; color: #1d4ed8; margin-bottom: 2px;
@@ -62,18 +56,18 @@
       background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.28);
       border-radius: 10px; padding: 14px 22px 12px; margin: 14px 0;
     }
-    html[data-theme="dark"] #main-content .hint-box { background: rgba(245,158,11,.09); }
+    
     #main-content .hint-num {
       font-size: .78rem; font-weight: 800; letter-spacing: .08em;
       text-transform: uppercase; color: #b45309; margin-bottom: 6px;
     }
     #main-content .hint-box p { color: #334155; margin-bottom: 4px; }
-    html[data-theme="dark"] #main-content .hint-box p { color: #8892a4; }
+    
     #main-content .ex-given {
       background: rgba(99,102,241,.06); border: 1px solid rgba(99,102,241,.22);
       border-radius: 10px; padding: 14px 22px 12px; margin: 16px 0;
     }
-    html[data-theme="dark"] #main-content .ex-given { background: rgba(99,102,241,.1); }
+    
     #main-content .ex-given .fml-label { color: #4338ca; }
     #main-content .ex-given td:first-child { color: #4338ca; font-weight: 600; width: 160px; }
     #main-content .ex-given td { border-bottom: 1px solid rgba(99,102,241,.12); padding: 5px 10px; }
@@ -81,9 +75,9 @@
     #main-content th {
       background: #dbeafe; color: #1e3a5f; font-weight: 600; padding: 8px 12px; text-align: left;
     }
-    html[data-theme="dark"] #main-content th { background: rgba(59,130,246,.15); color: #93c5fd; }
+    
     #main-content td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #334155; }
-    html[data-theme="dark"] #main-content td { border-bottom-color: #1e2a3a; color: #8892a4; }
+    
     #main-content tr:last-child td { border-bottom: none; }
 
     /* ─── 계산기 열기 버튼 ─── */
@@ -101,7 +95,7 @@
       display: none; position: fixed; inset: 0; z-index: 200;
       background: #e8edf3; overflow: hidden; transition: background .25s;
     }
-    html[data-theme="dark"] #calc-modal { background: #0f1117; }
+    
     #calc-modal.open { display: block; }
 
     #c-psychro { position: absolute; inset: 0; display: block; }
@@ -113,7 +107,7 @@
       font-size: 13px; font-weight: 600; color: #334155;
       cursor: pointer; backdrop-filter: blur(10px); transition: background .15s;
     }
-    html[data-theme="dark"] #close-calc-btn { background: rgba(30,42,58,.93); color: #cbd5e1; border-color: #2d3f55; }
+    
     #close-calc-btn:hover { opacity: .85; }
 
     /* ─── 우측 컬럼 ─── */
@@ -129,18 +123,18 @@
       background: rgba(255,255,255,.93); border: 1px solid rgba(0,0,0,.1);
       border-radius: 14px; backdrop-filter: blur(10px);
     }
-    html[data-theme="dark"] .panel-card { background: rgba(20,25,32,.93); border-color: #1e2a3a; }
+    
     .card-title {
       font-size: 11px; font-weight: 700; letter-spacing: .08em;
       text-transform: uppercase; color: #475569; text-align: center; margin-bottom: 10px;
     }
-    html[data-theme="dark"] .card-title { color: #6b7280; }
+    
 
     /* ─── 슬라이더 패널 ─── */
     #controls { padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; user-select: none; }
     .sl-row { display: flex; align-items: center; gap: 8px; }
     .sl-label { font-size: 12px; color: #475569; min-width: 110px; }
-    html[data-theme="dark"] .sl-label { color: #8892a4; }
+    
     .sl-row input[type="range"] {
       -webkit-appearance: none; appearance: none;
       flex: 1; height: 5px; border-radius: 3px; outline: none; cursor: pointer;
@@ -150,7 +144,7 @@
       background: #334155; box-shadow: 0 2px 8px rgba(0,0,0,.5);
       cursor: grab; transition: transform .1s;
     }
-    html[data-theme="dark"] .sl-row input[type="range"]::-webkit-slider-thumb { background: #94a3b8; }
+    
     .sl-row input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.15); cursor: grabbing; }
     .sl-val { font-size: 13px; font-weight: 700; min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
     .sl-unit { font-size: 10px; color: #94a3b8; white-space: nowrap; }
@@ -161,10 +155,10 @@
       display: flex; justify-content: space-between; align-items: baseline;
       padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,.05); font-size: 13px;
     }
-    html[data-theme="dark"] .res-row { border-bottom-color: rgba(255,255,255,.05); }
+    
     .res-row:last-child { border-bottom: none; }
     .res-label { color: #475569; }
-    html[data-theme="dark"] .res-label { color: #8892a4; }
+    
     .res-val { font-weight: 700; font-variant-numeric: tabular-nums; }
 
     /* ─── 풀이 패널 ─── */
@@ -173,13 +167,13 @@
       background: rgba(0,0,0,.03); border-radius: 8px; padding: 10px 12px;
       margin-bottom: 8px; border-left: 3px solid #3b82f6;
     }
-    html[data-theme="dark"] .step-item { background: rgba(255,255,255,.04); }
+    
     .step-item:last-child { margin-bottom: 0; }
     .step-num { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #3b82f6; text-transform: uppercase; margin-bottom: 3px; }
     .step-title { font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 6px; }
-    html[data-theme="dark"] .step-title { color: #cbd5e1; }
+    
     .step-formula { font-family: 'Courier New', monospace; font-size: 11px; color: #1d4ed8; line-height: 1.6; white-space: pre-wrap; }
-    html[data-theme="dark"] .step-formula { color: #93c5fd; }
+    
     .step-result { font-size: 20px; font-weight: 800; color: #3b82f6; font-variant-numeric: tabular-nums; margin-top: 5px; }
 
     /* ─── 캔버스 패널 ─── */
@@ -188,8 +182,6 @@
   </style>
 </head>
 <body>
-
-<button id="theme-btn" onclick="toggleTheme()" title="테마 전환"><span id="ti"></span></button>
 
 <!-- ═══════════════ 본문 ═══════════════ -->
 <main id="main-content">
@@ -383,15 +375,7 @@
 
 <script>
   // ── Theme ──
-  function toggleTheme() {
-    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
-    localStorage.setItem('theme', next);
-    document.getElementById('ti').textContent = next === 'dark' ? '☀️' : '🌙';
-    if (document.getElementById('calc-modal').classList.contains('open')) update();
-  }
-  document.getElementById('ti').textContent = document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙';
-  function isDark() { return document.documentElement.dataset.theme !== 'light'; }
+  function isDark() { return false; }
 
   // ── State ──
   const S = { qs: 65, ql: 8, hs: 47.5, hsu: 34.2 };
