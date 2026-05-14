@@ -1,324 +1,403 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SHR & 유량 계산 — 냉동공조</title>
   <script>(function(){document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark';})();</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.getElementById('main-content'),{
+      delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+      throwOnError:false
+    });"></script>
   <style>
-    :root {
-      --bg: #0f1117;
-      --bg-card: #141920;
-      --bg-deep: #0a0d14;
-      --border: #1e2a3a;
-      --border-subtle: #1a2133;
-      --border-prob: #253047;
-      --text: #e8eaf0;
-      --text-bright: #cbd5e1;
-      --text-muted: #8892a4;
-      --text-dim: #6b7280;
-      --text-faint: #475569;
-      --panel-title: #475569;
-      --nav-link: #6b7280;
-      --formula-text: #93c5fd;
-      --input-bg: #1e2a3a;
-      --result-unit: #475569;
-      --step-num: #3b82f6;
-      --btn-bg: #1e2a3a;
-    }
-    html[data-theme="light"] {
-      --bg: #f5f7fa;
-      --bg-card: #ffffff;
-      --bg-deep: #f8fafc;
-      --border: #e2e8f0;
-      --border-subtle: #e2e8f0;
-      --border-prob: #bfdbfe;
-      --text: #1e2330;
-      --text-bright: #334155;
-      --text-muted: #64748b;
-      --text-dim: #94a3b8;
-      --text-faint: #94a3b8;
-      --panel-title: #94a3b8;
-      --nav-link: #64748b;
-      --formula-text: #1d4ed8;
-      --input-bg: #f1f5f9;
-      --result-unit: #94a3b8;
-      --step-num: #2563eb;
-      --btn-bg: #f1f5f9;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #e8edf3; font-family: system-ui, sans-serif; transition: background .25s; }
+    html[data-theme="dark"] body { background: #0f1117; }
+    body.calc-open { overflow: hidden; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      transition: background .25s, color .25s;
-    }
-
-    nav {
-      padding: 16px 40px;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex; align-items: center; gap: 10px;
-    }
-    nav a { color: var(--nav-link); text-decoration: none; font-size: 13px; transition: color .2s; }
-    nav a:hover { color: var(--text); }
-    nav .sep { color: var(--border); }
-    nav .current { color: #60a5fa; font-weight: 600; font-size: 13px; }
     #theme-btn {
-      margin-left: auto;
-      background: var(--btn-bg); border: 1px solid var(--border);
+      position: fixed; top: 16px; right: 20px; z-index: 300;
+      background: rgba(255,255,255,.9); border: 1px solid rgba(0,0,0,.15);
       border-radius: 8px; padding: 5px 10px;
       cursor: pointer; font-size: 15px; line-height: 1; transition: background .2s;
     }
+    html[data-theme="dark"] #theme-btn { background: #1e2a3a; border-color: #2d3f55; color: #e8eaf0; }
     #theme-btn:hover { opacity: .8; }
 
-    .hero { padding: 40px 40px 28px; max-width: 1200px; margin: 0 auto; }
-    .badge {
-      display: inline-block;
-      background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.3);
-      color: #60a5fa; font-size: 11px; font-weight: 600;
-      letter-spacing: 2px; text-transform: uppercase;
-      padding: 4px 14px; border-radius: 20px; margin-bottom: 14px;
+    /* ─── 본문 ─── */
+    #main-content {
+      max-width: 780px; margin: 0 auto; padding: 64px 28px 120px;
+      color: #1e293b; line-height: 1.8;
     }
-    .hero h1 {
-      font-size: clamp(20px,3vw,32px); font-weight: 800;
-      background: linear-gradient(135deg, var(--text) 40%, #60a5fa);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text; margin-bottom: 10px;
+    html[data-theme="dark"] #main-content { color: #e8eaf0; }
+    #main-content h1 {
+      font-size: 2rem; font-weight: 800; letter-spacing: -.02em;
+      color: #0f172a; margin-bottom: 10px;
     }
-    .hero p { color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+    html[data-theme="dark"] #main-content h1 { color: #e8eaf0; }
+    #main-content .subtitle { font-size: 1rem; color: #64748b; margin-bottom: 48px; }
+    html[data-theme="dark"] #main-content .subtitle { color: #8892a4; }
+    #main-content h2 {
+      font-size: 1.15rem; font-weight: 700; color: #1e3a5f;
+      margin: 40px 0 12px; border-left: 4px solid #3b82f6; padding-left: 12px;
+    }
+    html[data-theme="dark"] #main-content h2 { color: #60a5fa; }
+    #main-content p { color: #334155; margin-bottom: 14px; font-size: .97rem; }
+    html[data-theme="dark"] #main-content p { color: #8892a4; }
+    #main-content .formula-box {
+      background: rgba(59,130,246,.06); border: 1px solid rgba(59,130,246,.2);
+      border-radius: 10px; padding: 14px 22px 10px; margin: 16px 0;
+      overflow-x: auto; color: #1e3a5f;
+    }
+    html[data-theme="dark"] #main-content .formula-box { background: rgba(59,130,246,.1); color: #93c5fd; }
+    #main-content .fml-label {
+      font-size: .78rem; font-weight: 700; letter-spacing: .07em;
+      text-transform: uppercase; color: #1d4ed8; margin-bottom: 2px;
+    }
+    .katex-display { margin: 6px 0 !important; overflow-x: auto; overflow-y: hidden; }
+    #main-content .hint-box {
+      background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.28);
+      border-radius: 10px; padding: 14px 22px 12px; margin: 14px 0;
+    }
+    html[data-theme="dark"] #main-content .hint-box { background: rgba(245,158,11,.09); }
+    #main-content .hint-num {
+      font-size: .78rem; font-weight: 800; letter-spacing: .08em;
+      text-transform: uppercase; color: #b45309; margin-bottom: 6px;
+    }
+    #main-content .hint-box p { color: #334155; margin-bottom: 4px; }
+    html[data-theme="dark"] #main-content .hint-box p { color: #8892a4; }
+    #main-content .ex-given {
+      background: rgba(99,102,241,.06); border: 1px solid rgba(99,102,241,.22);
+      border-radius: 10px; padding: 14px 22px 12px; margin: 16px 0;
+    }
+    html[data-theme="dark"] #main-content .ex-given { background: rgba(99,102,241,.1); }
+    #main-content .ex-given .fml-label { color: #4338ca; }
+    #main-content .ex-given td:first-child { color: #4338ca; font-weight: 600; width: 160px; }
+    #main-content .ex-given td { border-bottom: 1px solid rgba(99,102,241,.12); padding: 5px 10px; }
+    #main-content table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: 16px 0; }
+    #main-content th {
+      background: #dbeafe; color: #1e3a5f; font-weight: 600; padding: 8px 12px; text-align: left;
+    }
+    html[data-theme="dark"] #main-content th { background: rgba(59,130,246,.15); color: #93c5fd; }
+    #main-content td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+    html[data-theme="dark"] #main-content td { border-bottom-color: #1e2a3a; color: #8892a4; }
+    #main-content tr:last-child td { border-bottom: none; }
 
-    .problem-box { max-width: 1200px; margin: 0 auto 24px; padding: 0 40px; }
-    .problem-inner {
-      background: var(--bg-deep);
-      border: 1px solid var(--border-prob); border-left: 3px solid #3b82f6;
-      border-radius: 12px; padding: 18px 22px;
+    /* ─── 계산기 열기 버튼 ─── */
+    #open-calc-wrap { margin-top: 64px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    #open-calc-wrap p { color: #64748b; font-size: .9rem; }
+    #open-calc-btn {
+      padding: 16px 40px; font-size: 1.05rem; font-weight: 700;
+      background: #1d4ed8; color: #fff; border: none; border-radius: 14px; cursor: pointer;
+      box-shadow: 0 4px 18px rgba(29,78,216,.35); transition: transform .15s, box-shadow .15s;
     }
-    .problem-inner .p-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #60a5fa; margin-bottom: 10px; }
-    .problem-inner p { font-size: 13px; color: var(--text-muted); line-height: 1.8; }
-    .problem-inner strong { color: var(--text-bright); }
+    #open-calc-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(29,78,216,.45); }
 
-    .main-grid {
-      max-width: 1200px; margin: 0 auto; padding: 0 40px 24px;
-      display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start;
+    /* ─── 계산기 모달 ─── */
+    #calc-modal {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: #e8edf3; overflow: hidden; transition: background .25s;
     }
-    .left-panel, .right-panel { display: flex; flex-direction: column; gap: 16px; }
+    html[data-theme="dark"] #calc-modal { background: #0f1117; }
+    #calc-modal.open { display: block; }
 
-    .panel {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 16px; padding: 20px 22px;
+    #c-psychro { position: absolute; inset: 0; display: block; }
+
+    #close-calc-btn {
+      position: absolute; top: 22px; left: 22px; z-index: 20;
+      background: rgba(255,255,255,.93); border: 1px solid rgba(0,0,0,.12);
+      border-radius: 10px; padding: 7px 16px;
+      font-size: 13px; font-weight: 600; color: #334155;
+      cursor: pointer; backdrop-filter: blur(10px); transition: background .15s;
     }
-    .panel-title {
-      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
-      text-transform: uppercase; color: var(--panel-title); margin-bottom: 18px;
+    html[data-theme="dark"] #close-calc-btn { background: rgba(30,42,58,.93); color: #cbd5e1; border-color: #2d3f55; }
+    #close-calc-btn:hover { opacity: .85; }
+
+    /* ─── 우측 컬럼 ─── */
+    #right-col {
+      position: absolute; top: 22px; right: 22px; width: 340px;
+      display: flex; flex-direction: column; gap: 10px;
+      max-height: calc(100vh - 44px); overflow-y: auto; scrollbar-width: none; z-index: 10;
     }
+    #right-col::-webkit-scrollbar { display: none; }
 
-    .slider-group { margin-bottom: 20px; }
-    .slider-group:last-child { margin-bottom: 0; }
-    .slider-label { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
-    .slider-name { font-size: 13px; color: var(--text-muted); }
-    .slider-val { font-size: 17px; font-weight: 800; color: #60a5fa; font-variant-numeric: tabular-nums; }
-    .slider-unit { font-size: 11px; color: var(--result-unit); margin-left: 2px; }
+    /* ─── 패널 공통 ─── */
+    .panel-card {
+      background: rgba(255,255,255,.93); border: 1px solid rgba(0,0,0,.1);
+      border-radius: 14px; backdrop-filter: blur(10px);
+    }
+    html[data-theme="dark"] .panel-card { background: rgba(20,25,32,.93); border-color: #1e2a3a; }
+    .card-title {
+      font-size: 11px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: #475569; text-align: center; margin-bottom: 10px;
+    }
+    html[data-theme="dark"] .card-title { color: #6b7280; }
 
-    input[type="range"] {
+    /* ─── 슬라이더 패널 ─── */
+    #controls { padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; user-select: none; }
+    .sl-row { display: flex; align-items: center; gap: 8px; }
+    .sl-label { font-size: 12px; color: #475569; min-width: 110px; }
+    html[data-theme="dark"] .sl-label { color: #8892a4; }
+    .sl-row input[type="range"] {
       -webkit-appearance: none; appearance: none;
-      width: 100%; height: 4px; border-radius: 2px;
-      background: var(--input-bg); outline: none; cursor: pointer;
+      flex: 1; height: 5px; border-radius: 3px; outline: none; cursor: pointer;
     }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 18px; height: 18px; border-radius: 50%;
-      background: #3b82f6; box-shadow: 0 0 10px rgba(59,130,246,.5);
+    .sl-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+      background: #334155; box-shadow: 0 2px 8px rgba(0,0,0,.5);
       cursor: grab; transition: transform .1s;
     }
-    input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); cursor: grabbing; }
-
-    .step {
-      background: var(--bg-deep); border: 1px solid var(--border);
-      border-radius: 12px; padding: 16px 18px; margin-bottom: 12px;
-    }
-    .step:last-child { margin-bottom: 0; }
-    .step-num { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: var(--step-num); text-transform: uppercase; margin-bottom: 6px; }
-    .step-title { font-size: 13px; font-weight: 600; color: var(--text-bright); margin-bottom: 10px; }
-    .formula {
-      background: var(--bg-deep); border: 1px solid var(--border-subtle);
-      border-radius: 8px; padding: 10px 14px;
-      font-family: 'Courier New', monospace; font-size: 12.5px;
-      color: var(--formula-text); margin-bottom: 12px;
-      line-height: 1.65; white-space: pre-wrap;
-    }
-    .result-big { font-size: 26px; font-weight: 800; color: #60a5fa; font-variant-numeric: tabular-nums; line-height: 1; }
-    .result-unit { font-size: 13px; color: var(--result-unit); margin-left: 4px; }
-
-    /* ── Psychrometric section ── */
-    .psychro-section {
-      max-width: 1200px; margin: 0 auto; padding: 0 40px 60px;
-    }
-    .psychro-legend {
-      display: flex; flex-wrap: wrap; gap: 8px 20px;
-      font-size: 12px; color: var(--text-muted); margin-bottom: 14px;
-      align-items: center;
-    }
-    .leg { display: flex; align-items: center; gap: 6px; }
-    .leg-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .leg-line { width: 24px; height: 2px; flex-shrink: 0; }
-    .leg-dash { width: 24px; height: 0; flex-shrink: 0; border-top: 2px dashed; }
-
-    canvas { display: block; width: 100%; }
-
-    footer {
-      text-align: center; padding: 24px;
-      color: var(--text-dim); font-size: 13px;
-      border-top: 1px solid var(--border-subtle);
+    html[data-theme="dark"] .sl-row input[type="range"]::-webkit-slider-thumb { background: #94a3b8; }
+    .sl-row input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.15); cursor: grabbing; }
+    .sl-val { font-size: 13px; font-weight: 700; min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+    .sl-unit { font-size: 10px; color: #94a3b8; white-space: nowrap; }
+    #hsu-warn {
+      display: none; font-size: 11px; color: #f97316;
+      background: rgba(249,115,22,.1); border: 1px solid rgba(249,115,22,.3);
+      border-radius: 6px; padding: 5px 10px; line-height: 1.5;
     }
 
-    @media (max-width: 820px) {
-      nav { padding: 14px 20px; }
-      .hero { padding: 28px 20px 20px; }
-      .problem-box { padding: 0 20px; }
-      .main-grid { grid-template-columns: 1fr; padding: 0 20px 24px; }
-      .psychro-section { padding: 0 20px 60px; }
+    /* ─── 결과 패널 ─── */
+    #results-panel { padding: 14px 18px; }
+    .res-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,.05); font-size: 13px;
     }
+    html[data-theme="dark"] .res-row { border-bottom-color: rgba(255,255,255,.05); }
+    .res-row:last-child { border-bottom: none; }
+    .res-label { color: #475569; }
+    html[data-theme="dark"] .res-label { color: #8892a4; }
+    .res-val { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* ─── 풀이 패널 ─── */
+    #step-panel { padding: 14px 18px; }
+    .step-item {
+      background: rgba(0,0,0,.03); border-radius: 8px; padding: 10px 12px;
+      margin-bottom: 8px; border-left: 3px solid #3b82f6;
+    }
+    html[data-theme="dark"] .step-item { background: rgba(255,255,255,.04); }
+    .step-item:last-child { margin-bottom: 0; }
+    .step-num { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #3b82f6; text-transform: uppercase; margin-bottom: 3px; }
+    .step-title { font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 6px; }
+    html[data-theme="dark"] .step-title { color: #cbd5e1; }
+    .step-formula { font-family: 'Courier New', monospace; font-size: 11px; color: #1d4ed8; line-height: 1.6; white-space: pre-wrap; }
+    html[data-theme="dark"] .step-formula { color: #93c5fd; }
+    .step-result { font-size: 20px; font-weight: 800; color: #3b82f6; font-variant-numeric: tabular-nums; margin-top: 5px; }
+
+    /* ─── 캔버스 패널 ─── */
+    .canvas-panel { padding: 12px 14px 10px; }
+    .canvas-panel canvas { display: block; width: 100%; }
   </style>
 </head>
 <body>
 
-<nav>
-  <a href="../index.html">홈</a>
-  <span class="sep">›</span>
-  <a href="index.html">냉동공조</a>
-  <span class="sep">›</span>
-  <span class="current">SHR & 유량 계산</span>
-  <button id="theme-btn" onclick="toggleTheme()" title="테마 전환"><span id="ti"></span></button>
-</nav>
+<button id="theme-btn" onclick="toggleTheme()" title="테마 전환"><span id="ti"></span></button>
 
-<div class="hero">
-  <div class="badge">HVAC · Psychrometrics</div>
+<!-- ═══════════════ 본문 ═══════════════ -->
+<main id="main-content">
   <h1>현열비(SHR) & 공기 질량 유량 계산</h1>
-  <p>슬라이더로 변수를 바꿔가며 SHR과 질량 유량, 습공기선도 상의 상태 변화를 확인하세요.</p>
-</div>
+  <p class="subtitle">슬라이더로 변수를 바꿔가며 SHR과 질량 유량, 습공기선도 상의 상태 변화를 실시간으로 확인하세요.</p>
 
-<div class="problem-box">
-  <div class="problem-inner">
-    <div class="p-title">문제</div>
+  <h2>1. 현열비 (SHR)</h2>
+  <p>
+    공기조화 시스템의 전체 냉방 부하 $Q_{total}$은 현열 부하 $Q_s$와 잠열 부하 $Q_l$의 합입니다.
+    <b>현열비(Sensible Heat Ratio, SHR)</b>는 전체 부하 중 현열이 차지하는 비율로, 무차원 수입니다.
+  </p>
+  <div class="formula-box">
+    <div class="fml-label">전체 열 부하</div>
+    $$Q_{total} = Q_s + Q_l \quad [\mathrm{kW}]$$
+  </div>
+  <div class="formula-box">
+    <div class="fml-label">현열비 (SHR)</div>
+    $$\mathrm{SHR} = \frac{Q_s}{Q_{total}} = \frac{Q_s}{Q_s + Q_l}$$
+  </div>
+  <p>SHR이 1에 가까울수록 현열 부하가 지배적(건조한 환경)이며, 0에 가까울수록 잠열(습기)의 비중이 큽니다.</p>
+  <table>
+    <tr><th>SHR 범위</th><th>특성</th><th>대표 용도</th></tr>
+    <tr><td>0.95 이상</td><td>거의 현열만 존재</td><td>컴퓨터실, 서버룸</td></tr>
+    <tr><td>0.80 ~ 0.95</td><td>현열 지배</td><td>사무실, 일반 건물</td></tr>
+    <tr><td>0.60 ~ 0.80</td><td>현열·잠열 혼재</td><td>병원, 호텔, 주거</td></tr>
+    <tr><td>0.60 미만</td><td>잠열 지배</td><td>수영장, 식품 공장</td></tr>
+  </table>
+
+  <h2>2. 공기 질량 유량 ṁ</h2>
+  <p>
+    급기(Supply Air)와 실내 공기의 엔탈피 차이를 이용하면 필요한 질량 유량을 구할 수 있습니다.
+    엔탈피 차이가 작을수록 더 많은 공기를 공급해야 합니다.
+  </p>
+  <div class="formula-box">
+    <div class="fml-label">질량 유량</div>
+    $$\dot{m} = \frac{Q_{total}}{h_{space} - h_{supply}} \quad [\mathrm{kg/s}]$$
+  </div>
+  <p>
+    여기서 $h_{space}$는 실내 공기 엔탈피, $h_{supply}$는 급기 엔탈피입니다.
+    급기 엔탈피는 반드시 실내 엔탈피보다 낮아야 냉각 효과가 발생합니다.
+  </p>
+
+  <h2>3. 습공기선도 (Psychrometric Chart)</h2>
+  <p>
+    습공기선도는 건구온도 $T_{db}$와 절대습도 $W$의 관계를 나타내며,
+    공조 프로세스(실내 상태 R → 급기 상태 S)는 선도 위의 선분으로 표현됩니다.
+  </p>
+  <div class="formula-box">
+    <div class="fml-label">습공기 엔탈피</div>
+    $$h = c_{pa} \cdot T + W \cdot (2501 + 1.86 \cdot T) \quad [\mathrm{kJ/kg_{da}}]$$
+  </div>
+  <div class="formula-box">
+    <div class="fml-label">포화증기압 (Magnus 근사식)</div>
+    $$p_{sat}(T) = 0.6112 \exp\!\left(\frac{17.67\,T}{T+243.5}\right) \quad [\mathrm{kPa}]$$
+  </div>
+  <p>
+    급기 상태점은 반드시 포화선(RH 100%) 안쪽에 위치해야 합니다.
+    포화선 바깥은 물리적으로 불가능한 영역입니다.
+  </p>
+
+  <h2>4. 예제</h2>
+  <p>단일 구역 공기조화기(Single-zone A/C)의 설계 조건이 아래와 같을 때, ① SHR과 ② 질량 유량 ṁ을 구하시오.</p>
+  <div class="ex-given">
+    <div class="fml-label">주어진 조건</div>
+    <table>
+      <tr><td>현열 부하</td><td>$Q_s = 65\;\mathrm{kW}$</td></tr>
+      <tr><td>잠열 부하</td><td>$Q_l = 8\;\mathrm{kW}$</td></tr>
+      <tr><td>실내 조건</td><td>$24\,°\mathrm{C},\;\mathrm{RH}\;50\,\%$</td></tr>
+      <tr><td>실내 공기 엔탈피</td><td>$h_{space} = 47.5\;\mathrm{kJ/kg}$</td></tr>
+      <tr><td>급기 엔탈피</td><td>$h_{supply} = 34.2\;\mathrm{kJ/kg}$</td></tr>
+    </table>
+  </div>
+
+  <div class="hint-box">
+    <div class="hint-num">힌트 1</div>
     <p>
-      단일 구역 공기조화기(Single-zone A/C)의 <strong>현열 부하 Q<sub>s</sub> = 65 kW</strong>,
-      <strong>잠열 부하 Q<sub>l</sub> = 8 kW</strong>.<br>
-      실내 조건: 24°C, RH 50%, 실내 공기 엔탈피 <strong>h<sub>space</sub> = 47.5 kJ/kg</strong>.<br>
-      급기 엔탈피 <strong>h<sub>supply</sub> = 34.2 kJ/kg</strong> 일 때,
-      ① <strong>SHR</strong> 과 ② <strong>질량 유량 ṁ (kg/s)</strong> 을 구하시오.
+      먼저 $Q_{total} = Q_s + Q_l$을 구한 다음, SHR과 $\dot{m}$을 순서대로 계산하세요.
+      SHR은 무차원이므로 단위 확인이 필요 없지만, $\dot{m}$ 계산 시 엔탈피 단위(kJ/kg)와 부하 단위(kW = kJ/s)가 일치하는지 확인하세요.
     </p>
   </div>
-</div>
+  <div class="hint-box">
+    <div class="hint-num">힌트 2</div>
+    <p>
+      급기 엔탈피 $h_{supply}$를 낮출수록 ṁ이 감소합니다(에너지 효율 향상).
+      그러나 너무 낮추면 급기 상태점이 포화선을 초과해 물리적으로 불가능해집니다.
+      계산기에서 슬라이더를 움직여 이 한계를 직접 확인해 보세요.
+    </p>
+  </div>
 
-<div class="main-grid">
-  <div class="left-panel">
-    <div class="panel">
-      <div class="panel-title">변수 조정</div>
-      <div class="slider-group">
-        <div class="slider-label">
-          <span class="slider-name">Q<sub>s</sub> — 현열 부하</span>
-          <div><span class="slider-val" id="v-qs">65</span><span class="slider-unit">kW</span></div>
-        </div>
-        <input type="range" id="sl-qs" min="10" max="150" step="1" value="65">
+  <div id="open-calc-wrap">
+    <p>아래 버튼을 클릭하면 대화형 습공기선도 계산기를 열 수 있습니다.</p>
+    <button id="open-calc-btn">⚙ SHR 계산기 열기</button>
+  </div>
+</main>
+
+<!-- ═══════════════ 계산기 모달 ═══════════════ -->
+<div id="calc-modal">
+  <button id="close-calc-btn">← 본문으로</button>
+
+  <!-- 습공기선도 — 배경 전체 -->
+  <canvas id="c-psychro"></canvas>
+
+  <div id="right-col">
+
+    <!-- 슬라이더 -->
+    <div id="controls" class="panel-card">
+      <div class="card-title">변수 조정</div>
+      <div class="sl-row">
+        <span class="sl-label">Q<sub>s</sub> 현열 부하</span>
+        <input type="range" id="sl-qs" min="10" max="150" step="1" value="65"
+               style="background:linear-gradient(to right,#3b82f6,#60a5fa)">
+        <span class="sl-val" id="v-qs" style="color:#60a5fa">65</span>
+        <span class="sl-unit">kW</span>
       </div>
-      <div class="slider-group">
-        <div class="slider-label">
-          <span class="slider-name">Q<sub>l</sub> — 잠열 부하</span>
-          <div><span class="slider-val" id="v-ql">8</span><span class="slider-unit">kW</span></div>
-        </div>
-        <input type="range" id="sl-ql" min="0" max="50" step="0.5" value="8">
+      <div class="sl-row">
+        <span class="sl-label">Q<sub>l</sub> 잠열 부하</span>
+        <input type="range" id="sl-ql" min="0" max="50" step="0.5" value="8"
+               style="background:linear-gradient(to right,#f97316,#fb923c)">
+        <span class="sl-val" id="v-ql" style="color:#f97316">8</span>
+        <span class="sl-unit">kW</span>
       </div>
-      <div class="slider-group">
-        <div class="slider-label">
-          <span class="slider-name">h<sub>space</sub> — 실내 엔탈피</span>
-          <div><span class="slider-val" id="v-hs">47.5</span><span class="slider-unit">kJ/kg</span></div>
-        </div>
-        <input type="range" id="sl-hs" min="35" max="65" step="0.5" value="47.5">
+      <div class="sl-row">
+        <span class="sl-label">h<sub>space</sub> 실내 엔탈피</span>
+        <input type="range" id="sl-hs" min="35" max="65" step="0.5" value="47.5"
+               style="background:linear-gradient(to right,#ef4444,#f87171)">
+        <span class="sl-val" id="v-hs" style="color:#ef4444">47.5</span>
+        <span class="sl-unit">kJ/kg</span>
       </div>
-      <div class="slider-group">
-        <div class="slider-label">
-          <span class="slider-name">h<sub>supply</sub> — 급기 엔탈피</span>
-          <div><span class="slider-val" id="v-hsu">34.2</span><span class="slider-unit">kJ/kg</span></div>
-        </div>
-        <input type="range" id="sl-hsu" min="20" max="44" step="0.1" value="34.2">
-        <div id="hsu-note" style="display:none; margin-top:6px; font-size:11px; color:#f97316; background:rgba(249,115,22,.1); border:1px solid rgba(249,115,22,.3); border-radius:6px; padding:5px 10px; line-height:1.5;"></div>
+      <div class="sl-row">
+        <span class="sl-label">h<sub>supply</sub> 급기 엔탈피</span>
+        <input type="range" id="sl-hsu" min="20" max="44" step="0.1" value="34.2"
+               style="background:linear-gradient(to right,#8b5cf6,#a78bfa)">
+        <span class="sl-val" id="v-hsu" style="color:#8b5cf6">34.2</span>
+        <span class="sl-unit">kJ/kg</span>
+      </div>
+      <div id="hsu-warn"></div>
+    </div>
+
+    <!-- 결과 요약 -->
+    <div id="results-panel" class="panel-card">
+      <div class="card-title">계산 결과</div>
+      <div class="res-row">
+        <span class="res-label">Q<sub>total</sub></span>
+        <span class="res-val" id="r-qt" style="color:#8b5cf6">—</span>
+      </div>
+      <div class="res-row">
+        <span class="res-label">현열비 SHR</span>
+        <span class="res-val" id="r-shr" style="color:#60a5fa">—</span>
+      </div>
+      <div class="res-row">
+        <span class="res-label">질량 유량 ṁ</span>
+        <span class="res-val" id="r-mdot" style="color:#34d399">—</span>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-title">풀이 과정</div>
-      <div class="step">
+    <!-- 풀이 과정 -->
+    <div id="step-panel" class="panel-card">
+      <div class="card-title">풀이 과정</div>
+      <div class="step-item">
         <div class="step-num">Step 1</div>
         <div class="step-title">전체 열 부하 Q<sub>total</sub></div>
-        <div class="formula" id="f-qt"></div>
+        <div class="step-formula" id="f-qt"></div>
       </div>
-      <div class="step">
+      <div class="step-item">
         <div class="step-num">Step 2</div>
         <div class="step-title">현열비 (SHR)</div>
-        <div class="formula" id="f-shr"></div>
-        <span class="result-big" id="r-shr"></span><span class="result-unit">(무차원)</span>
+        <div class="step-formula" id="f-shr"></div>
+        <div class="step-result" id="rs-shr"></div>
       </div>
-      <div class="step">
+      <div class="step-item">
         <div class="step-num">Step 3</div>
-        <div class="step-title">공기 질량 유량 ṁ</div>
-        <div class="formula" id="f-mdot"></div>
-        <span class="result-big" id="r-mdot"></span><span class="result-unit">kg/s</span>
+        <div class="step-title">질량 유량 ṁ</div>
+        <div class="step-formula" id="f-mdot"></div>
+        <div class="step-result" id="rs-mdot"></div>
       </div>
     </div>
-  </div>
 
-  <div class="right-panel">
-    <div class="panel">
-      <div class="panel-title">현열 / 잠열 구성 (SHR 도넛)</div>
-      <canvas id="c-donut" style="height:240px"></canvas>
+    <!-- 도넛 차트 -->
+    <div class="panel-card canvas-panel">
+      <div class="card-title">현열 / 잠열 구성</div>
+      <canvas id="c-donut" style="height:190px"></canvas>
     </div>
-    <div class="panel">
-      <div class="panel-title">급기 엔탈피 변화 → 질량 유량 ṁ</div>
-      <canvas id="c-line" style="height:260px"></canvas>
-    </div>
-    <div class="panel">
-      <div class="panel-title">열 부하 비교</div>
-      <canvas id="c-bar" style="height:180px"></canvas>
-    </div>
-  </div>
-</div>
 
-<!-- ── Psychrometric Chart Section ── -->
-<div class="psychro-section">
-  <div class="panel">
-    <div class="panel-title">습공기선도 — 공조 프로세스 시각화</div>
-    <div class="psychro-legend">
-      <div class="leg"><div class="leg-dot" style="background:#ef4444"></div>R — 실내 공기 상태</div>
-      <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>S — 급기 (Supply Air)</div>
-      <div class="leg"><div class="leg-line" style="background:#f97316"></div>공조 프로세스 R→S</div>
-      <div class="leg"><div class="leg-dash" style="border-color:#ef4444"></div>h<sub>space</sub> 등엔탈피선</div>
-      <div class="leg"><div class="leg-dash" style="border-color:#3b82f6"></div>h<sub>supply</sub> 등엔탈피선</div>
-      <div class="leg"><div class="leg-line" style="background:#16a34a; height:2.5px"></div>포화곡선 (RH 100%)</div>
-      <div class="leg"><div class="leg-dash" style="border-color:#8b5cf6; opacity:.7"></div>등엔탈피선</div>
-      <div class="leg"><div class="leg-dash" style="border-color:#60a5fa; opacity:.6"></div>상대습도선 (RH)</div>
+    <!-- 바 차트 -->
+    <div class="panel-card canvas-panel">
+      <div class="card-title">열 부하 비교</div>
+      <canvas id="c-bar" style="height:140px"></canvas>
     </div>
-    <canvas id="c-psychro" style="height:440px"></canvas>
-  </div>
-</div>
 
-<footer>&copy; 2026 기계공학 학습 포털</footer>
+  </div><!-- #right-col -->
+</div><!-- #calc-modal -->
 
 <script>
   // ── Theme ──
   function toggleTheme() {
-    var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
     localStorage.setItem('theme', next);
     document.getElementById('ti').textContent = next === 'dark' ? '☀️' : '🌙';
-    update();
+    if (document.getElementById('calc-modal').classList.contains('open')) update();
   }
-  document.getElementById('ti').textContent = (document.documentElement.dataset.theme === 'dark') ? '☀️' : '🌙';
-
+  document.getElementById('ti').textContent = document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙';
   function isDark() { return document.documentElement.dataset.theme !== 'light'; }
-  function cv(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
   // ── State ──
   const S = { qs: 65, ql: 8, hs: 47.5, hsu: 34.2 };
@@ -348,39 +427,13 @@
       update();
     });
   }
-  bind('sl-qs','v-qs','qs',false);
-  bind('sl-ql','v-ql','ql',false);
-  bind('sl-hs','v-hs','hs',true);
-  bind('sl-hsu','v-hsu','hsu',true);
-
-  // ── Solution text ──
-  function updateText() {
-    const { qt, shr, dh, mdot } = calc();
-    const { qs, ql, hs, hsu } = S;
-    document.getElementById('f-qt').textContent = `Q_total = Q_s + Q_l\n       = ${qs} + ${ql} = ${qt.toFixed(1)} kW`;
-    document.getElementById('f-shr').textContent = `SHR = Q_s / Q_total\n    = ${qs} / ${qt.toFixed(1)} = ${shr.toFixed(4)}`;
-    document.getElementById('r-shr').textContent = shr.toFixed(4);
-    const ms = isFinite(mdot) ? mdot.toFixed(2) : '∞';
-    document.getElementById('f-mdot').textContent =
-      `ṁ = Q_total / (h_space − h_supply)\n  = ${qt.toFixed(1)} / (${hs.toFixed(1)} − ${hsu.toFixed(1)})\n  = ${qt.toFixed(1)} / ${dh.toFixed(1)} = ${ms} kg/s`;
-    document.getElementById('r-mdot').textContent = ms;
-  }
-
-  // ── Canvas helper ──
-  function setup(id, cssH) {
-    const cv2 = document.getElementById(id);
-    const dpr = window.devicePixelRatio || 1;
-    const W = cv2.offsetWidth;
-    cv2.width = W * dpr; cv2.height = cssH * dpr;
-    cv2.style.height = cssH + 'px';
-    const ctx = cv2.getContext('2d');
-    ctx.scale(dpr, dpr);
-    return { ctx, W, H: cssH };
-  }
+  bind('sl-qs', 'v-qs', 'qs', false);
+  bind('sl-ql', 'v-ql', 'ql', false);
+  bind('sl-hs', 'v-hs', 'hs', true);
+  bind('sl-hsu', 'v-hsu', 'hsu', true);
 
   // ── Psychrometric functions ──
   const P_atm = 101.325, Cpa = 1.006, T_SPACE = 24;
-
   function pSat(T) { return 0.6112 * Math.exp(17.67 * T / (T + 243.5)); }
   function wSat(T) { const ps = pSat(T); return 0.622 * ps / (P_atm - ps); }
   function wFromRH(T, rh) { const ps = pSat(T), pv = rh * ps; return 0.622 * pv / (P_atm - pv); }
@@ -398,92 +451,98 @@
     return { room: { T: T_SPACE, W: W_room }, supply: { T: T_sup, W: W_sup } };
   }
 
-  // h_supply 최솟값: 급기 상태가 포화선 밖으로 나가지 않는 최솟값 (이진탐색)
   function findHsupMin() {
     const { qs, ql, hs } = S;
     const qt = qs + ql;
-
     function satMargin(hsu) {
       const dh = hs - hsu;
       if (dh < 0.01) return -999;
       const mdot = qt / dh;
       const T_sup = T_SPACE - qs / (mdot * Cpa);
-      return wSat(T_sup) - wFromTH(T_sup, hsu); // 양수=포화선 안, 음수=포화선 밖
+      return wSat(T_sup) - wFromTH(T_sup, hsu);
     }
-
     const hMax = hs - 0.5;
-    if (satMargin(hMax) < 0) return hMax; // 비정상 케이스
-
+    if (satMargin(hMax) < 0) return hMax;
     let lo = 10, hi = hMax;
-    if (satMargin(lo) >= 0) return lo; // 제한 불필요
-
+    if (satMargin(lo) >= 0) return lo;
     for (let i = 0; i < 60; i++) {
       const mid = (lo + hi) / 2;
       if (satMargin(mid) < 0) lo = mid; else hi = mid;
       if (hi - lo < 0.05) break;
     }
-    return Math.ceil(hi * 10) / 10; // 0.1 단위 올림 (안전 마진)
+    return Math.ceil(hi * 10) / 10;
   }
 
   function enforceHsupConstraint() {
     const hMin = Math.max(findHsupMin(), 20);
     const slHsu = document.getElementById('sl-hsu');
-    const note  = document.getElementById('hsu-note');
+    const note = document.getElementById('hsu-warn');
     slHsu.min = hMin.toFixed(1);
     if (S.hsu < hMin) {
-      S.hsu = hMin;
-      slHsu.value = hMin;
+      S.hsu = hMin; slHsu.value = hMin;
       document.getElementById('v-hsu').textContent = hMin.toFixed(1);
     }
-    if (note) {
-      const isConstrained = hMin > 20.1;
-      note.style.display = isConstrained ? 'block' : 'none';
-      note.textContent = isConstrained
-        ? `※ 하한 ${hMin.toFixed(1)} kJ/kg — 이 이하는 급기가 포화선을 초과합니다`
-        : '';
-    }
+    const isConstrained = hMin > 20.1;
+    note.style.display = isConstrained ? 'block' : 'none';
+    note.textContent = isConstrained
+      ? `※ 하한 ${hMin.toFixed(1)} kJ/kg — 이 이하는 급기가 포화선을 초과합니다` : '';
   }
 
-  // ── Psychrometric Chart ──
+  // ── Update text ──
+  function updateText() {
+    const { qt, shr, dh, mdot } = calc();
+    const { qs, ql, hs, hsu } = S;
+    const ms = isFinite(mdot) ? mdot.toFixed(2) : '∞';
+    document.getElementById('f-qt').textContent = `Q_total = ${qs} + ${ql} = ${qt.toFixed(1)} kW`;
+    document.getElementById('f-shr').textContent = `SHR = ${qs} / ${qt.toFixed(1)}\n    = ${shr.toFixed(4)}`;
+    document.getElementById('rs-shr').textContent = shr.toFixed(4);
+    document.getElementById('f-mdot').textContent =
+      `ṁ = ${qt.toFixed(1)} / (${hs.toFixed(1)} − ${hsu.toFixed(1)})\n  = ${qt.toFixed(1)} / ${dh.toFixed(1)}\n  = ${ms} kg/s`;
+    document.getElementById('rs-mdot').textContent = ms + ' kg/s';
+    document.getElementById('r-qt').textContent = qt.toFixed(1) + ' kW';
+    document.getElementById('r-shr').textContent = shr.toFixed(4);
+    document.getElementById('r-mdot').textContent = ms + ' kg/s';
+  }
+
+  // ── Psychrometric Chart (fills background) ──
   function drawPsychro() {
-    const { ctx, W: cw, H: ch } = setup('c-psychro', 440);
+    const canvas = document.getElementById('c-psychro');
+    const W = innerWidth, H = innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
     const dark = isDark();
+    const rightColW = 340 + 44; // right-col width + margins
+    const pad = { l: 68, r: 20, t: 40, b: 56 };
+    const chartW = W - rightColW;
+    const cW = chartW - pad.l - pad.r;
+    const cH = H - pad.t - pad.b;
 
-    const pad = { l: 68, r: 28, t: 32, b: 56 };
-    const cW = cw - pad.l - pad.r, cH = ch - pad.t - pad.b;
+    const T_MIN = 4, T_MAX = 36, W_MIN = 0, W_MAX = 0.022;
+    const tx = T => pad.l + (T - T_MIN) / (T_MAX - T_MIN) * cW;
+    const ty = w => pad.t + cH - (w - W_MIN) / (W_MAX - W_MIN) * cH;
 
-    const T_MIN = 4, T_MAX = 36;
-    const W_MIN = 0, W_MAX = 0.022;
-
-    function tx(T) { return pad.l + (T - T_MIN) / (T_MAX - T_MIN) * cW; }
-    function ty(W) { return pad.t + cH - (W - W_MIN) / (W_MAX - W_MIN) * cH; }
-
-    function clipChart(fn) {
+    function clip(fn) {
       ctx.save();
       ctx.beginPath(); ctx.rect(pad.l, pad.t, cW, cH); ctx.clip();
-      fn();
-      ctx.restore();
+      fn(); ctx.restore();
     }
 
-    ctx.clearRect(0, 0, cw, ch);
+    ctx.clearRect(0, 0, W, H);
 
-    // Background
-    if (dark) {
-      const g = ctx.createLinearGradient(pad.l, pad.t, pad.l + cW, pad.t + cH);
-      g.addColorStop(0, '#0f141e'); g.addColorStop(1, '#0a1018');
-      ctx.fillStyle = g;
-    } else {
-      const g = ctx.createLinearGradient(pad.l, pad.t, pad.l + cW, pad.t + cH);
-      g.addColorStop(0, '#f8fbff'); g.addColorStop(1, '#eef4fb');
-      ctx.fillStyle = g;
-    }
+    const g = ctx.createLinearGradient(pad.l, pad.t, pad.l + cW, pad.t + cH);
+    if (dark) { g.addColorStop(0, '#0f141e'); g.addColorStop(1, '#0a1018'); }
+    else { g.addColorStop(0, '#f8fbff'); g.addColorStop(1, '#eef4fb'); }
+    ctx.fillStyle = g;
     ctx.fillRect(pad.l, pad.t, cW, cH);
 
     const gridC = dark ? '#1a2538' : '#e2e8f0';
     const labelC = dark ? '#475569' : '#64748b';
-    const textC  = dark ? '#cbd5e1' : '#1e293b';
+    const textC = dark ? '#cbd5e1' : '#1e293b';
 
-    // Grid
     ctx.strokeStyle = gridC; ctx.lineWidth = 1;
     for (let T = T_MIN; T <= T_MAX; T += 2) {
       ctx.beginPath(); ctx.moveTo(tx(T), pad.t); ctx.lineTo(tx(T), pad.t + cH); ctx.stroke();
@@ -492,8 +551,8 @@
       ctx.beginPath(); ctx.moveTo(pad.l, ty(w)); ctx.lineTo(pad.l + cW, ty(w)); ctx.stroke();
     }
 
-    // Enthalpy lines (all, thin)
-    clipChart(() => {
+    // Enthalpy lines
+    clip(() => {
       ctx.setLineDash([3, 5]); ctx.lineWidth = 0.8;
       ctx.strokeStyle = dark ? 'rgba(139,92,246,0.28)' : 'rgba(124,58,237,0.32)';
       for (let h = 0; h <= 110; h += 10) {
@@ -501,56 +560,51 @@
         for (let T = T_MIN; T <= T_MAX; T += 0.5) {
           const w = wFromTH(T, h);
           if (w < W_MIN - 0.001 || w > W_MAX + 0.001) { first = true; continue; }
-          if (first) { ctx.moveTo(tx(T), ty(w)); first = false; }
-          else ctx.lineTo(tx(T), ty(w));
+          if (first) { ctx.moveTo(tx(T), ty(w)); first = false; } else ctx.lineTo(tx(T), ty(w));
         }
         ctx.stroke();
-        // enthalpy label (left edge)
-        const wAtLeft = wFromTH(T_MIN, h);
-        if (wAtLeft >= W_MIN && wAtLeft <= W_MAX) {
+        const wL = wFromTH(T_MIN, h);
+        if (wL >= W_MIN && wL <= W_MAX) {
           ctx.fillStyle = dark ? 'rgba(139,92,246,0.6)' : 'rgba(124,58,237,0.6)';
-          ctx.font = '9px Segoe UI'; ctx.textAlign = 'right';
-          ctx.fillText(`${h}`, pad.l - 3, ty(wAtLeft) + 3);
+          ctx.font = '9px system-ui'; ctx.textAlign = 'right';
+          ctx.fillText(`${h}`, pad.l - 3, ty(wL) + 3);
         }
       }
       ctx.setLineDash([]);
     });
 
     // Highlighted enthalpy lines (h_space, h_supply)
-    clipChart(() => {
-      [{ h: S.hs, color: '#ef4444' }, { h: S.hsu, color: '#3b82f6' }].forEach(({ h, color }) => {
+    clip(() => {
+      [{ h: S.hs, color: '#ef4444' }, { h: S.hsu, color: '#8b5cf6' }].forEach(({ h, color }) => {
         ctx.setLineDash([7, 5]); ctx.lineWidth = 1.8;
         ctx.strokeStyle = color + 'cc';
         ctx.beginPath(); let first = true;
         for (let T = T_MIN; T <= T_MAX; T += 0.3) {
           const w = wFromTH(T, h);
           if (w < W_MIN - 0.001 || w > W_MAX + 0.001) { first = true; continue; }
-          if (first) { ctx.moveTo(tx(T), ty(w)); first = false; }
-          else ctx.lineTo(tx(T), ty(w));
+          if (first) { ctx.moveTo(tx(T), ty(w)); first = false; } else ctx.lineTo(tx(T), ty(w));
         }
-        ctx.stroke();
-        ctx.setLineDash([]);
+        ctx.stroke(); ctx.setLineDash([]);
       });
     });
 
     // Wet-bulb lines
-    clipChart(() => {
-      ctx.lineWidth = 0.9;
-      ctx.strokeStyle = dark ? 'rgba(8,145,178,0.4)' : 'rgba(8,145,178,0.5)';
+    clip(() => {
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = dark ? 'rgba(8,145,178,0.3)' : 'rgba(8,145,178,0.4)';
       for (let Twb = 5; Twb <= 35; Twb += 5) {
         ctx.beginPath(); let first = true;
         for (let T = Twb; T <= T_MAX; T += 0.5) {
           const w = wOnWB(T, Twb);
           if (w < W_MIN - 0.0005 || w > W_MAX + 0.0005) { first = true; continue; }
-          if (first) { ctx.moveTo(tx(T), ty(w)); first = false; }
-          else ctx.lineTo(tx(T), ty(w));
+          if (first) { ctx.moveTo(tx(T), ty(w)); first = false; } else ctx.lineTo(tx(T), ty(w));
         }
         ctx.stroke();
       }
     });
 
     // RH curves
-    clipChart(() => {
+    clip(() => {
       [30, 40, 50, 60, 70, 80, 90].forEach(rh => {
         ctx.setLineDash([5, 4]); ctx.lineWidth = rh === 50 ? 1.6 : 1;
         ctx.strokeStyle = dark
@@ -560,54 +614,44 @@
         for (let T = T_MIN; T <= T_MAX; T += 0.3) {
           const w = wFromRH(T, rh / 100);
           if (w < W_MIN - 0.0005 || w > W_MAX + 0.001) { first = true; continue; }
-          if (first) { ctx.moveTo(tx(T), ty(w)); first = false; }
-          else ctx.lineTo(tx(T), ty(w));
+          if (first) { ctx.moveTo(tx(T), ty(w)); first = false; } else ctx.lineTo(tx(T), ty(w));
         }
         ctx.stroke(); ctx.setLineDash([]);
-
-        // label
         for (let T = T_MAX; T >= T_MIN; T -= 0.5) {
           const w = wFromRH(T, rh / 100);
           if (w >= W_MIN + 0.001 && w <= W_MAX - 0.001 && tx(T) < pad.l + cW - 4 && ty(w) > pad.t + 4) {
-            ctx.fillStyle = dark ? `rgba(96,165,250,0.7)` : `rgba(29,78,216,0.7)`;
-            ctx.font = '9px Segoe UI'; ctx.textAlign = 'left';
-            ctx.fillText(`${rh}%`, tx(T) + 2, ty(w) - 2);
-            break;
+            ctx.fillStyle = dark ? 'rgba(96,165,250,0.7)' : 'rgba(29,78,216,0.7)';
+            ctx.font = '9px system-ui'; ctx.textAlign = 'left';
+            ctx.fillText(`${rh}%`, tx(T) + 2, ty(w) - 2); break;
           }
         }
       });
     });
 
-    // Saturation curve (100% RH)
-    clipChart(() => {
+    // Saturation curve
+    clip(() => {
       ctx.lineWidth = 2.5; ctx.strokeStyle = '#16a34a'; ctx.beginPath(); let first = true;
       for (let T = T_MIN; T <= T_MAX; T += 0.2) {
         const w = wSat(T);
         if (w > W_MAX + 0.0005) { first = true; continue; }
-        if (first) { ctx.moveTo(tx(T), ty(w)); first = false; }
-        else ctx.lineTo(tx(T), ty(w));
+        if (first) { ctx.moveTo(tx(T), ty(w)); first = false; } else ctx.lineTo(tx(T), ty(w));
       }
       ctx.stroke();
     });
 
-    // State points
+    // Process line & state points
     const { room, supply } = calcStates();
-    const inChart = (p) => p.T >= T_MIN && p.T <= T_MAX && p.W >= W_MIN && p.W <= W_MAX;
+    const inChart = p => p.T >= T_MIN && p.T <= T_MAX && p.W >= W_MIN && p.W <= W_MAX;
 
-    // Process line
     if (inChart(room) && inChart(supply)) {
-      clipChart(() => {
+      clip(() => {
         ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2.2;
         ctx.beginPath();
         ctx.moveTo(tx(supply.T), ty(supply.W));
         ctx.lineTo(tx(room.T), ty(room.W));
         ctx.stroke();
-
-        // Arrow head at R (room)
-        const dx = tx(room.T) - tx(supply.T);
-        const dy = ty(room.W) - ty(supply.W);
-        const ang = Math.atan2(dy, dx);
-        const al = 11;
+        const dx = tx(room.T) - tx(supply.T), dy = ty(room.W) - ty(supply.W);
+        const ang = Math.atan2(dy, dx), al = 11;
         ctx.fillStyle = '#f97316';
         ctx.beginPath();
         ctx.moveTo(tx(room.T), ty(room.W));
@@ -617,43 +661,25 @@
       });
     }
 
-    // Draw Supply point (S)
-    if (inChart(supply)) {
-      const sx = tx(supply.T), sy = ty(supply.W);
-      ctx.beginPath(); ctx.arc(sx, sy, 7, 0, Math.PI*2);
-      ctx.fillStyle = '#3b82f6'; ctx.fill();
+    [
+      { pt: supply, color: '#8b5cf6', label: 'S (급기)', h: S.hsu },
+      { pt: room,   color: '#ef4444', label: 'R (실내)', h: S.hs }
+    ].forEach(({ pt, color, label, h }) => {
+      if (!inChart(pt)) return;
+      const px = tx(pt.T), py = ty(pt.W);
+      ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI * 2);
+      ctx.fillStyle = color; ctx.fill();
       ctx.strokeStyle = dark ? '#0f1117' : '#fff'; ctx.lineWidth = 2; ctx.stroke();
-
-      // Label S
-      const labelRight = sx < pad.l + cW * 0.6;
-      ctx.textAlign = labelRight ? 'left' : 'right';
-      const lx = labelRight ? sx + 12 : sx - 12;
-      ctx.fillStyle = '#3b82f6'; ctx.font = 'bold 12px Segoe UI';
-      ctx.fillText(`S (급기)`, lx, sy - 6);
-      ctx.fillStyle = textC; ctx.font = '11px Segoe UI';
-      ctx.fillText(`${supply.T.toFixed(1)}°C, ${(supply.W*1000).toFixed(1)} g/kg`, lx, sy + 9);
-      ctx.fillStyle = labelC; ctx.font = '10px Segoe UI';
-      ctx.fillText(`h = ${S.hsu.toFixed(1)} kJ/kg`, lx, sy + 22);
-    }
-
-    // Draw Room point (R)
-    if (inChart(room)) {
-      const rx = tx(room.T), ry = ty(room.W);
-      ctx.beginPath(); ctx.arc(rx, ry, 7, 0, Math.PI*2);
-      ctx.fillStyle = '#ef4444'; ctx.fill();
-      ctx.strokeStyle = dark ? '#0f1117' : '#fff'; ctx.lineWidth = 2; ctx.stroke();
-
-      // Label R
-      const labelRight = rx < pad.l + cW * 0.6;
-      ctx.textAlign = labelRight ? 'left' : 'right';
-      const lx = labelRight ? rx + 12 : rx - 12;
-      ctx.fillStyle = '#ef4444'; ctx.font = 'bold 12px Segoe UI';
-      ctx.fillText(`R (실내)`, lx, ry - 6);
-      ctx.fillStyle = textC; ctx.font = '11px Segoe UI';
-      ctx.fillText(`${room.T}°C, ${(room.W*1000).toFixed(1)} g/kg`, lx, ry + 9);
-      ctx.fillStyle = labelC; ctx.font = '10px Segoe UI';
-      ctx.fillText(`h = ${S.hs.toFixed(1)} kJ/kg`, lx, ry + 22);
-    }
+      const goRight = px < pad.l + cW * 0.6;
+      ctx.textAlign = goRight ? 'left' : 'right';
+      const lx = goRight ? px + 12 : px - 12;
+      ctx.fillStyle = color; ctx.font = 'bold 12px system-ui';
+      ctx.fillText(label, lx, py - 6);
+      ctx.fillStyle = textC; ctx.font = '11px system-ui';
+      ctx.fillText(`${pt.T.toFixed(1)}°C, ${(pt.W * 1000).toFixed(1)} g/kg`, lx, py + 9);
+      ctx.fillStyle = labelC; ctx.font = '10px system-ui';
+      ctx.fillText(`h = ${h.toFixed(1)} kJ/kg`, lx, py + 22);
+    });
 
     // Axes
     ctx.strokeStyle = dark ? '#475569' : '#334155'; ctx.lineWidth = 1.5;
@@ -661,45 +687,40 @@
     ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t + cH);
     ctx.lineTo(pad.l + cW, pad.t + cH); ctx.stroke();
 
-    // X axis ticks & labels (T)
-    ctx.fillStyle = labelC; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillStyle = labelC; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
     for (let T = T_MIN; T <= T_MAX; T += 4) {
       ctx.beginPath(); ctx.moveTo(tx(T), pad.t + cH); ctx.lineTo(tx(T), pad.t + cH + 5); ctx.stroke();
       ctx.fillText(`${T}°C`, tx(T), pad.t + cH + 18);
     }
-
-    // Y axis ticks & labels (W)
     ctx.textAlign = 'right';
     for (let w = 0; w <= W_MAX + 1e-9; w += 0.002) {
       ctx.beginPath(); ctx.moveTo(pad.l, ty(w)); ctx.lineTo(pad.l - 5, ty(w)); ctx.stroke();
-      ctx.fillText(`${(w*1000).toFixed(0)}`, pad.l - 8, ty(w) + 4);
+      ctx.fillText(`${(w * 1000).toFixed(0)}`, pad.l - 8, ty(w) + 4);
     }
-
-    // Axis titles
-    ctx.fillStyle = labelC; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
-    ctx.fillText('건구온도 T (°C)', pad.l + cW / 2, ch - 10);
+    ctx.fillStyle = labelC; ctx.textAlign = 'center';
+    ctx.fillText('건구온도 T (°C)', pad.l + cW / 2, H - 12);
     ctx.save();
     ctx.translate(14, pad.t + cH / 2); ctx.rotate(-Math.PI / 2);
     ctx.fillText('절대습도 W (g/kg dry air)', 0, 0);
     ctx.restore();
+    ctx.fillText('습공기선도  (P = 101.325 kPa)', pad.l + cW / 2, pad.t - 14);
 
-    // Chart sub-title
-    ctx.fillStyle = labelC; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
-    ctx.fillText('습공기선도  (P = 101.325 kPa, 기준 온도 T_db)', pad.l + cW / 2, pad.t - 10);
-
-    // "100%" label on saturation curve
-    ctx.fillStyle = '#16a34a'; ctx.font = 'bold 10px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#16a34a'; ctx.font = 'bold 10px system-ui'; ctx.textAlign = 'left';
     const wAt28 = wSat(28);
     if (wAt28 <= W_MAX) ctx.fillText('100%', tx(28) + 3, ty(wAt28) - 4);
   }
 
-  // ── Mini charts ──
+  // ── Donut chart ──
   function drawDonut() {
-    const { ctx, W, H } = setup('c-donut', 240);
+    const cv = document.getElementById('c-donut');
+    const W = cv.offsetWidth || 312, H = 190;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.height = H + 'px';
+    const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
     const { shr } = calc();
-    const cx = W * 0.38, cy = H / 2, r = Math.min(W * 0.28, H * 0.44);
+    const cx = W * 0.38, cy = H / 2, r = Math.min(W * 0.28, H * 0.42);
     const TAU = 2 * Math.PI, ST = -Math.PI / 2, GAP = 0.06;
-    const holeColor = cv('--bg-card');
     ctx.clearRect(0, 0, W, H);
     ctx.beginPath(); ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, r, ST, ST + shr * TAU - GAP / 2);
@@ -710,113 +731,83 @@
       ctx.closePath(); ctx.fillStyle = '#f97316'; ctx.fill();
     }
     ctx.beginPath(); ctx.arc(cx, cy, r * 0.58, 0, TAU);
-    ctx.fillStyle = holeColor; ctx.fill();
+    ctx.fillStyle = isDark() ? '#141920' : '#ffffff'; ctx.fill();
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#60a5fa';
-    ctx.font = `bold ${Math.round(r * 0.42)}px 'Segoe UI', sans-serif`;
+    ctx.font = `bold ${Math.round(r * 0.42)}px system-ui`;
     ctx.fillText((shr * 100).toFixed(1) + '%', cx, cy - r * 0.07);
-    ctx.fillStyle = cv('--text-dim');
-    ctx.font = `${Math.round(r * 0.2)}px 'Segoe UI', sans-serif`;
+    const dimC = isDark() ? '#6b7280' : '#94a3b8';
+    ctx.fillStyle = dimC; ctx.font = `${Math.round(r * 0.2)}px system-ui`;
     ctx.fillText('SHR', cx, cy + r * 0.22);
-    const lx = W * 0.7, ly = H * 0.28, sq = 12, gp = 22;
-    [['#3b82f6', `현열 Qs  ${S.qs} kW`], ['#f97316', `잠열 Ql  ${S.ql} kW`]].forEach(([c, t], i) => {
+    const lx = W * 0.7, ly = H * 0.28, sq = 11, gp = 22;
+    [['#3b82f6', `현열 ${S.qs} kW`], ['#f97316', `잠열 ${S.ql} kW`]].forEach(([c, t], i) => {
       const y = ly + i * gp;
       ctx.fillStyle = c; ctx.fillRect(lx, y, sq, sq);
-      ctx.fillStyle = cv('--text-muted');
-      ctx.font = `12px 'Segoe UI', sans-serif`;
+      ctx.fillStyle = dimC; ctx.font = '11px system-ui';
       ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      ctx.fillText(t, lx + sq + 8, y + sq / 2);
+      ctx.fillText(t, lx + sq + 6, y + sq / 2);
     });
   }
 
-  function drawLine() {
-    const { ctx, W, H } = setup('c-line', 260);
-    const { qt } = calc();
-    const { hs, hsu } = S;
-    const pad = { t: 16, r: 24, b: 40, l: 54 };
-    const cW = W - pad.l - pad.r, cH = H - pad.t - pad.b;
-    const xMin = 20, xMax = parseFloat((hs - 1).toFixed(1));
-    if (xMax <= xMin) { ctx.clearRect(0,0,W,H); return; }
-    const pts = [];
-    for (let h = xMin; h <= xMax; h += 0.2) {
-      const d = hs - h; if (d > 0) pts.push({ x: h, y: qt / d });
-    }
-    if (pts.length < 2) return;
-    const yMax = Math.min(pts[0].y * 1.15, 40);
-    function px(x, y) { return { px: pad.l+(x-xMin)/(xMax-xMin)*cW, py: pad.t+(1-y/yMax)*cH }; }
-    ctx.clearRect(0,0,W,H);
-    const gridC = cv('--border'), textC = cv('--text-dim'), textC2 = cv('--text-muted');
-    ctx.strokeStyle = gridC; ctx.lineWidth = 1;
-    for (let i=0;i<=4;i++) {
-      const v=i*yMax/4, {py} = px(xMin,v);
-      ctx.beginPath(); ctx.moveTo(pad.l,py); ctx.lineTo(W-pad.r,py); ctx.stroke();
-      ctx.fillStyle=textC; ctx.font='11px Segoe UI'; ctx.textAlign='right'; ctx.textBaseline='middle';
-      ctx.fillText(v.toFixed(1),pad.l-6,py);
-    }
-    ctx.fillStyle=textC; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='11px Segoe UI';
-    for (let i=0;i<=5;i++) { const v=xMin+i*(xMax-xMin)/5, {px:x}=px(v,0); ctx.fillText(v.toFixed(0),x,H-pad.b+6); }
-    ctx.fillStyle=textC2; ctx.textAlign='center'; ctx.fillText('h_supply (kJ/kg)',W/2,H-12);
-    ctx.save(); ctx.translate(13,H/2); ctx.rotate(-Math.PI/2); ctx.fillText('ṁ (kg/s)',0,0); ctx.restore();
-    ctx.beginPath(); ctx.strokeStyle='#3b82f6'; ctx.lineWidth=2.5; ctx.lineJoin='round';
-    pts.forEach((p,i) => { const {px:x,py:y}=px(p.x,Math.min(p.y,yMax)); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-    ctx.stroke();
-    if (hsu>=xMin&&hsu<=xMax) {
-      const curY=Math.min(qt/(hs-hsu),yMax), {px:cx2,py:cy2}=px(hsu,curY);
-      ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(96,165,250,.35)'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(cx2,pad.t); ctx.lineTo(cx2,H-pad.b);
-      ctx.moveTo(pad.l,cy2); ctx.lineTo(W-pad.r,cy2); ctx.stroke(); ctx.setLineDash([]);
-      ctx.beginPath(); ctx.arc(cx2,cy2,7,0,2*Math.PI); ctx.fillStyle='#1e3a8a'; ctx.fill();
-      ctx.beginPath(); ctx.arc(cx2,cy2,5,0,2*Math.PI); ctx.fillStyle='#60a5fa'; ctx.fill();
-      ctx.fillStyle=cv('--text'); ctx.font='bold 12px Segoe UI';
-      ctx.textBaseline='bottom'; ctx.textAlign=cx2>W*0.65?'right':'left';
-      ctx.fillText(`ṁ = ${(qt/(hs-hsu)).toFixed(2)} kg/s`,cx2+(cx2>W*0.65?-10:10),cy2-8);
-    }
-  }
-
+  // ── Bar chart ──
   function drawBar() {
-    const { ctx, W, H } = setup('c-bar', 180);
+    const cv = document.getElementById('c-bar');
+    const W = cv.offsetWidth || 312, H = 140;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.height = H + 'px';
+    const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
     const { qt } = calc();
     const { qs, ql } = S;
-    ctx.clearRect(0,0,W,H);
-    const pad={t:16,r:80,b:20,l:78}, cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
-    const items=[{label:'Q_s (현열)',val:qs,color:'#3b82f6'},{label:'Q_l (잠열)',val:ql,color:'#f97316'},{label:'Q_total',val:qt,color:'#8b5cf6'}];
-    const maxVal=qt*1.08, bH=(cH/items.length)*0.55, rowH=cH/items.length;
-    const textC=cv('--text-dim');
-    items.forEach(({label,val,color},i) => {
-      const y=pad.t+i*rowH+(rowH-bH)/2, barW=(val/maxVal)*cW;
-      ctx.fillStyle=color;
-      if (ctx.roundRect){ctx.beginPath();ctx.roundRect(pad.l,y,barW,bH,4);ctx.fill();}
-      else ctx.fillRect(pad.l,y,barW,bH);
-      ctx.fillStyle=textC; ctx.font='11.5px Segoe UI'; ctx.textAlign='right'; ctx.textBaseline='middle';
-      ctx.fillText(label,pad.l-8,y+bH/2);
-      ctx.fillStyle=color; ctx.font='bold 12px Segoe UI'; ctx.textAlign='left';
-      ctx.fillText(`${val.toFixed(1)} kW`,pad.l+barW+8,y+bH/2);
+    ctx.clearRect(0, 0, W, H);
+    const pad = { t: 12, r: 68, b: 16, l: 72 };
+    const cW = W - pad.l - pad.r, cH = H - pad.t - pad.b;
+    const items = [
+      { label: 'Q_s 현열', val: qs, color: '#3b82f6' },
+      { label: 'Q_l 잠열', val: ql, color: '#f97316' },
+      { label: 'Q_total',  val: qt, color: '#8b5cf6' }
+    ];
+    const maxVal = qt * 1.08, bH = (cH / items.length) * 0.55, rowH = cH / items.length;
+    const textC = isDark() ? '#475569' : '#94a3b8';
+    items.forEach(({ label, val, color }, i) => {
+      const y = pad.t + i * rowH + (rowH - bH) / 2;
+      const barW = (val / maxVal) * cW;
+      ctx.fillStyle = color;
+      if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(pad.l, y, barW, bH, 3); ctx.fill(); }
+      else ctx.fillRect(pad.l, y, barW, bH);
+      ctx.fillStyle = textC; ctx.font = '11px system-ui';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(label, pad.l - 6, y + bH / 2);
+      ctx.fillStyle = color; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'left';
+      ctx.fillText(`${val.toFixed(1)} kW`, pad.l + barW + 6, y + bH / 2);
     });
   }
 
   // ── Update all ──
-  function updateText() {
-    const { qt, shr, dh, mdot } = calc();
-    const { qs, ql, hs, hsu } = S;
-    document.getElementById('f-qt').textContent = `Q_total = Q_s + Q_l\n       = ${qs} + ${ql} = ${qt.toFixed(1)} kW`;
-    document.getElementById('f-shr').textContent = `SHR = Q_s / Q_total\n    = ${qs} / ${qt.toFixed(1)} = ${shr.toFixed(4)}`;
-    document.getElementById('r-shr').textContent = shr.toFixed(4);
-    const ms = isFinite(mdot) ? mdot.toFixed(2) : '∞';
-    document.getElementById('f-mdot').textContent =
-      `ṁ = Q_total / (h_space − h_supply)\n  = ${qt.toFixed(1)} / (${hs.toFixed(1)} − ${hsu.toFixed(1)})\n  = ${qt.toFixed(1)} / ${dh.toFixed(1)} = ${ms} kg/s`;
-    document.getElementById('r-mdot').textContent = ms;
-  }
-
   function update() {
     enforceHsupConstraint();
     updateText();
-    drawDonut();
-    drawLine();
-    drawBar();
-    drawPsychro();
+    if (document.getElementById('calc-modal').classList.contains('open')) {
+      drawPsychro(); drawDonut(); drawBar();
+    }
   }
 
-  window.addEventListener('resize', update);
+  // ── Modal open / close ──
+  const calcModal = document.getElementById('calc-modal');
+  document.getElementById('open-calc-btn').addEventListener('click', () => {
+    calcModal.classList.add('open');
+    document.body.classList.add('calc-open');
+    update();
+  });
+  document.getElementById('close-calc-btn').addEventListener('click', () => {
+    calcModal.classList.remove('open');
+    document.body.classList.remove('calc-open');
+  });
+
+  window.addEventListener('resize', () => {
+    if (calcModal.classList.contains('open')) { drawPsychro(); drawDonut(); drawBar(); }
+  });
+
   update();
 </script>
 </body>
