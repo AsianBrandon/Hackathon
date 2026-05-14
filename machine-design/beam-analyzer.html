@@ -4,34 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>단순지지보 해석기</title>
-<script>(function(){document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark';})();</script>
 <style>
 :root {
-  --bg: #0f1117;
-  --text: #e8eaf0;
-  --text-muted: #8892a4;
-  --text-dim: #6b7280;
-  --border: #1e2a3a;
-  --accent: #60a5fa;
-  --accent2: #818cf8;
-  --fcard-bg: #141920;
-  --fcard-border: #1e2a3a;
-  --sign-th: rgba(96,165,250,.15);
-  --sign-td: #1a2133;
-  --sign-border: #1e2a3a;
-  --note-bg: rgba(59,130,246,.1);
-  --note-border: #3b82f6;
-  --cv-bg: #141920;
-  --cv-border: #1e2a3a;
-  --chip-bg: #141920;
-  --chip-border: #1e2a3a;
-  --chip-text: #60a5fa;
-  --chip-label: #8892a4;
-  --btn-bg: #1e2a3a;
-  --reveal-bg: #141920;
-  --reveal-border: #1e2a3a;
-}
-html[data-theme="light"] {
   --bg: #f6f8fa;
   --text: #24292f;
   --text-muted: #57606a;
@@ -57,6 +31,7 @@ html[data-theme="light"] {
   --reveal-border: #d0d7de;
 }
 
+
 * { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior:smooth; }
 body {
@@ -66,14 +41,8 @@ body {
   transition: background .25s, color .25s;
 }
 
-#theme-btn {
-  position: fixed; top: 16px; right: 20px; z-index: 100;
-  background: var(--btn-bg); border: 1px solid var(--border);
-  border-radius: 8px; padding: 5px 10px;
-  cursor: pointer; font-size: 15px; line-height: 1;
-  transition: background .2s;
-}
-#theme-btn:hover { opacity: .8; }
+
+
 
 .hero {
   display:flex; flex-direction:column;
@@ -200,8 +169,6 @@ body {
 </style>
 </head>
 <body>
-
-<button id="theme-btn" onclick="toggleTheme()" title="테마 전환"><span id="ti"></span></button>
 
 <!-- ── 히어로 ── -->
 <section class="hero">
@@ -392,16 +359,8 @@ body {
 
 <script>
 /* ── 테마 ── */
-function toggleTheme() {
-  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-  document.documentElement.dataset.theme = next;
-  localStorage.setItem('theme', next);
-  document.getElementById('ti').textContent = next === 'dark' ? '☀️' : '🌙';
-  draw();
-}
-document.getElementById('ti').textContent = (document.documentElement.dataset.theme === 'dark') ? '☀️' : '🌙';
 
-function isDark() { return document.documentElement.dataset.theme !== 'light'; }
+function isDark() { return false; }
 
 function palette() {
   const dark = isDark();
