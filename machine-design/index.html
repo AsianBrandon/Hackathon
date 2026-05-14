@@ -4,22 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>기계설계기초 — 기계공학 학습 포털</title>
-  <script>(function(){document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark';})();</script>
   <style>
     :root {
-      --bg: #0f1117;
-      --bg-card: #141920;
-      --border: #1e2a3a;
-      --border-subtle: #1a2133;
-      --text: #e8eaf0;
-      --text-muted: #8892a4;
-      --text-dim: #6b7280;
-      --nav-link: #6b7280;
-      --btn-bg: #1e2a3a;
-      --accent: #fb923c;
-      --accent-rgb: 249,115,22;
-    }
-    html[data-theme="light"] {
       --bg: #f5f7fa;
       --bg-card: #ffffff;
       --border: #e2e8f0;
@@ -30,6 +16,7 @@
       --nav-link: #64748b;
       --btn-bg: #f1f5f9;
     }
+    
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -52,13 +39,8 @@
     nav a:hover { color: var(--text); }
     nav .sep { color: var(--border); }
     nav .current { color: var(--accent); font-weight: 600; }
-    #theme-btn {
-      margin-left: auto;
-      background: var(--btn-bg); border: 1px solid var(--border);
-      border-radius: 8px; padding: 5px 10px;
-      cursor: pointer; font-size: 15px; line-height: 1; transition: background .2s;
-    }
-    #theme-btn:hover { opacity: .8; }
+    
+    
 
     /* ── Hero ── */
     .hero {
@@ -196,7 +178,6 @@
     <a href="../index.html">홈</a>
     <span class="sep">›</span>
     <span class="current">기계설계기초</span>
-    <button id="theme-btn" onclick="toggleTheme()" title="테마 전환"><span id="ti"></span></button>
   </nav>
 
   <div class="hero">
@@ -258,14 +239,6 @@
 
   <footer>&copy; 2026 기계공학 학습 포털</footer>
 
-  <script>
-    function toggleTheme() {
-      var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = next;
-      localStorage.setItem('theme', next);
-      document.getElementById('ti').textContent = next === 'dark' ? '☀️' : '🌙';
-    }
-    document.getElementById('ti').textContent = (document.documentElement.dataset.theme === 'dark') ? '☀️' : '🌙';
-  </script>
+  
 </body>
 </html>
