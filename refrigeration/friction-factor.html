@@ -4,35 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>압력강하 계산</title>
-  <script>(function(){document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark';})();</script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
     onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
   <style>
     :root {
-      --bg: #0f1117;
-      --card: #141920;
-      --card-shadow: 0 1px 4px rgba(0,0,0,.4);
-      --text: #e8eaf0;
-      --text-muted: #8892a4;
-      --text-dim: #6b7280;
-      --border: #1e2a3a;
-      --input-bg: #0d1117;
-      --input-border: #2d3f55;
-      --input-dis: #1a2133;
-      --result-bg: #1a2133;
-      --dp-bg: rgba(59,130,246,.15);
-      --dp-border: #3b82f6;
-      --example-bg: rgba(245,158,11,.07);
-      --example-border: rgba(245,158,11,.4);
-      --example-ans: rgba(255,255,255,.04);
-      --eq-bg: rgba(59,130,246,.08);
-      --eq-border: #3b82f6;
-      --th-bg: #1a2133;
-      --btn-bg: #1e2a3a;
-    }
-    html[data-theme="light"] {
       --bg: #f1f5f9;
       --card: #fff;
       --card-shadow: 0 1px 4px rgba(0,0,0,.08);
@@ -54,6 +31,7 @@
       --th-bg: #f8fafc;
       --btn-bg: #e2e8f0;
     }
+    
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -64,14 +42,8 @@
       padding: 24px 20px;
       transition: background .25s, color .25s;
     }
-    #theme-btn {
-      position: fixed; top: 16px; right: 20px; z-index: 100;
-      background: var(--btn-bg); border: 1px solid var(--border);
-      border-radius: 8px; padding: 5px 10px;
-      cursor: pointer; font-size: 15px; line-height: 1;
-      transition: background .2s;
-    }
-    #theme-btn:hover { opacity: .8; }
+    
+    
 
     .page-header { max-width: 1160px; margin: 0 auto 20px; }
     .page-header h1 { font-size: 22px; font-weight: 700; color: var(--text); }
@@ -315,8 +287,6 @@
 </head>
 <body>
 
-<button id="theme-btn" onclick="toggleTheme()" title="테마 전환"><span id="ti"></span></button>
-
 <!-- 인트로 섹션 -->
 <div class="intro">
 
@@ -546,16 +516,8 @@
 
 <script>
 /* ── 테마 ── */
-function toggleTheme() {
-  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-  document.documentElement.dataset.theme = next;
-  localStorage.setItem('theme', next);
-  document.getElementById('ti').textContent = next === 'dark' ? '☀️' : '🌙';
-  drawMoody();
-}
-document.getElementById('ti').textContent = (document.documentElement.dataset.theme === 'dark') ? '☀️' : '🌙';
 
-function isDark() { return document.documentElement.dataset.theme !== 'light'; }
+function isDark() { return false; }
 
 function moodyColors() {
   const dark = isDark();
