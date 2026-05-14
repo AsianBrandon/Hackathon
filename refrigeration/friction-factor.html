@@ -679,7 +679,7 @@ function calculate() {
 
   document.getElementById('out-f').textContent    = f.toFixed(6);
   document.getElementById('out-f').className      = 'val ' + regime;
-  document.getElementById('out-ed').textContent   = Re < 2300 ? '—' : (function(n){ const d = Math.max(0, Math.ceil(-Math.log10(n)) + 3); return n.toFixed(d); })(epD);
+  document.getElementById('out-ed').textContent   = Re < 2300 ? '—' : (function(n){ const d = Math.max(0, Math.ceil(-Math.log10(n)) + 3); return n.toFixed(d).replace(/0+$/, '').replace(/\.$/, ''); })(epD);
   document.getElementById('out-iter').textContent = Re < 2300 ? '—' : iter + ' 회';
   document.getElementById('out-dp').textContent   = dP != null ? dP.toFixed(2) : '—';
 
