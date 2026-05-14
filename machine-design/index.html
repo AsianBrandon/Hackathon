@@ -15,10 +15,9 @@
       --text-muted: #8892a4;
       --text-dim: #6b7280;
       --nav-link: #6b7280;
-      --chip-bg: #181d27;
-      --chip-border: #252d3d;
-      --chip-text: #9ca3af;
       --btn-bg: #1e2a3a;
+      --accent: #fb923c;
+      --accent-rgb: 249,115,22;
     }
     html[data-theme="light"] {
       --bg: #f5f7fa;
@@ -29,9 +28,6 @@
       --text-muted: #64748b;
       --text-dim: #94a3b8;
       --nav-link: #64748b;
-      --chip-bg: #f1f5f9;
-      --chip-border: #e2e8f0;
-      --chip-text: #64748b;
       --btn-bg: #f1f5f9;
     }
 
@@ -55,75 +51,142 @@
     nav a { color: var(--nav-link); text-decoration: none; font-size: 14px; transition: color .2s; }
     nav a:hover { color: var(--text); }
     nav .sep { color: var(--border); }
-    nav .current { color: #fb923c; font-weight: 600; }
-
+    nav .current { color: var(--accent); font-weight: 600; }
     #theme-btn {
       margin-left: auto;
-      background: var(--btn-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 5px 10px;
-      cursor: pointer;
-      font-size: 15px;
-      line-height: 1;
-      transition: background .2s;
+      background: var(--btn-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 5px 10px;
+      cursor: pointer; font-size: 15px; line-height: 1; transition: background .2s;
     }
     #theme-btn:hover { opacity: .8; }
 
+    /* ── Hero ── */
     .hero {
-      padding: 60px 40px 48px;
-      max-width: 900px; margin: 0 auto; width: 100%;
+      padding: 64px 40px 52px;
+      max-width: 960px; margin: 0 auto; width: 100%;
     }
-    .hero .badge {
+    .badge {
       display: inline-block;
-      background: rgba(249,115,22,.12);
-      border: 1px solid rgba(249,115,22,.3);
-      color: #fb923c;
-      font-size: 12px; font-weight: 600;
-      letter-spacing: 2px; text-transform: uppercase;
+      background: rgba(var(--accent-rgb),.12);
+      border: 1px solid rgba(var(--accent-rgb),.3);
+      color: var(--accent);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 2.5px; text-transform: uppercase;
       padding: 5px 16px; border-radius: 20px; margin-bottom: 20px;
     }
     .hero h1 {
-      font-size: clamp(26px, 4vw, 40px);
+      font-size: clamp(28px, 4vw, 42px);
       font-weight: 800; margin-bottom: 14px;
-      background: linear-gradient(135deg, var(--text) 40%, #fb923c);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      background: linear-gradient(135deg, var(--text) 40%, var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .hero p { color: var(--text-muted); font-size: 15px; line-height: 1.75; max-width: 560px; }
+    .hero p { color: var(--text-muted); font-size: 15px; line-height: 1.75; max-width: 580px; }
 
-    .coming-soon {
+    /* ── Problem cards ── */
+    .problems {
       flex: 1;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 20px 40px 80px; text-align: center;
+      max-width: 960px; margin: 0 auto; width: 100%;
+      padding: 0 40px 80px;
     }
-    .coming-soon .icon {
-      width: 80px; height: 80px;
-      background: rgba(249,115,22,.1);
-      border: 1px solid rgba(249,115,22,.2);
-      border-radius: 24px;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 28px;
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--text-dim);
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 12px;
     }
-    .coming-soon .icon svg { width: 38px; height: 38px; color: #fb923c; }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
 
-    .topic-preview {
-      display: flex; flex-wrap: wrap; gap: 10px;
-      margin-top: 36px; justify-content: center; max-width: 600px;
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
     }
-    .topic-chip {
-      background: var(--chip-bg);
-      border: 1px solid var(--chip-border);
-      color: var(--chip-text);
-      font-size: 12px; padding: 6px 14px; border-radius: 20px;
+
+    .problem-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px;
+      display: flex; flex-direction: column;
+      gap: 20px;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
     }
+    .problem-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), rgba(var(--accent-rgb),.3));
+      opacity: 0; transition: opacity .2s;
+    }
+    .problem-card:hover {
+      border-color: rgba(var(--accent-rgb),.5);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,.25);
+    }
+    .problem-card:hover::before { opacity: 1; }
+
+    .card-num {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--accent);
+    }
+
+    .card-body { flex: 1; }
+    .card-title {
+      font-size: 20px; font-weight: 700;
+      color: var(--text); margin-bottom: 12px; line-height: 1.3;
+    }
+    .card-desc {
+      font-size: 14px; color: var(--text-muted); line-height: 1.75;
+    }
+
+    .card-tags {
+      display: flex; flex-wrap: wrap; gap: 7px;
+    }
+    .tag {
+      font-size: 11px; font-weight: 600; letter-spacing: .5px;
+      padding: 4px 12px; border-radius: 20px;
+      background: rgba(var(--accent-rgb),.1);
+      border: 1px solid rgba(var(--accent-rgb),.2);
+      color: var(--accent);
+    }
+
+    .card-cta {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 16px; border-top: 1px solid var(--border);
+    }
+    .card-cta span {
+      font-size: 13px; font-weight: 600; color: var(--accent);
+    }
+    .card-cta .arrow {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(var(--accent-rgb),.12);
+      border: 1px solid rgba(var(--accent-rgb),.25);
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s, transform .2s;
+    }
+    .problem-card:hover .arrow {
+      background: rgba(var(--accent-rgb),.25);
+      transform: translateX(3px);
+    }
+    .card-cta svg { width: 14px; height: 14px; color: var(--accent); }
 
     footer {
       text-align: center; padding: 24px;
       color: var(--text-dim); font-size: 13px;
       border-top: 1px solid var(--border-subtle);
+    }
+
+    @media (max-width: 680px) {
+      nav { padding: 16px 20px; }
+      .hero { padding: 40px 20px 36px; }
+      .problems { padding: 0 20px 60px; }
+      .card-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -142,46 +205,54 @@
     <p>응력·변형률 기초부터 체결 요소, 축, 베어링 설계까지 핵심 이론과 예제 풀이를 단계별로 학습합니다. 설계 변수를 바꿔가며 결과가 어떻게 달라지는지 확인하세요.</p>
   </div>
 
-  <div class="coming-soon">
-    <div class="icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.07 4.93l-1.41 1.41M5.34 17.66l-1.41 1.41M20 12h-2M6 12H4M19.07 19.07l-1.41-1.41M5.34 6.34L3.93 4.93M12 20v-2M12 6V4M16.66 17.66l1.41 1.41M6.34 6.34L4.93 4.93"/>
-      </svg>
-    </div>
+  <div class="problems">
+    <div class="section-label">예제 문제</div>
+    <div class="card-grid">
 
-    <div class="topic-preview" style="margin-top:0; margin-bottom:32px; gap:12px;">
-      <a href="wrench.html" style="
-        display:inline-block;
-        background:rgba(249,115,22,.15);
-        border:1px solid rgba(249,115,22,.4);
-        color:#fb923c;
-        font-size:13px; font-weight:600;
-        padding:10px 22px; border-radius:10px;
-        text-decoration:none; transition:background .2s;
-      ">기역자 렌치 응력 시뮬레이터 →</a>
-      <a href="beam-analyzer.html" style="
-        display:inline-block;
-        background:rgba(249,115,22,.15);
-        border:1px solid rgba(249,115,22,.4);
-        color:#fb923c;
-        font-size:13px; font-weight:600;
-        padding:10px 22px; border-radius:10px;
-        text-decoration:none; transition:background .2s;
-      ">단순지지보 해석기 →</a>
-    </div>
+      <a href="wrench.html" class="problem-card">
+        <div class="card-num">Problem 01</div>
+        <div class="card-body">
+          <div class="card-title">기역자 렌치<br>응력 시뮬레이터</div>
+          <div class="card-desc">복합 하중을 받는 L형 렌치의 임계 응력 상태를 Mohr 원과 파손 이론으로 분석합니다. 3D 모델을 회전시키며 Von Mises·MSS 기준에 따른 안전계수를 실시간으로 확인합니다.</div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">Mohr 원</span>
+          <span class="tag">Von Mises</span>
+          <span class="tag">MSS/Tresca</span>
+          <span class="tag">비틀림 · 굽힘</span>
+        </div>
+        <div class="card-cta">
+          <span>풀이 시작 →</span>
+          <div class="arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+      </a>
 
-    <p style="color:var(--text-dim); font-size:13px;">추가 예제 준비 중...</p>
+      <a href="beam-analyzer.html" class="problem-card">
+        <div class="card-num">Problem 02</div>
+        <div class="card-body">
+          <div class="card-title">단순지지보<br>해석기</div>
+          <div class="card-desc">집중하중과 분포하중 조건에서 보의 반력, 전단력도(SFD), 굽힘모멘트도(BMD), 처짐 선도를 자동으로 계산하고 시각화합니다. 하중 위치와 크기를 바꾸며 거동을 직접 확인하세요.</div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">전단력도(SFD)</span>
+          <span class="tag">굽힘모멘트도</span>
+          <span class="tag">처짐 선도</span>
+          <span class="tag">반력 계산</span>
+        </div>
+        <div class="card-cta">
+          <span>풀이 시작 →</span>
+          <div class="arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+      </a>
 
-    <div class="topic-preview">
-      <span class="topic-chip">응력 · 변형률</span>
-      <span class="topic-chip">안전계수</span>
-      <span class="topic-chip">피로 설계</span>
-      <span class="topic-chip">볼트 체결</span>
-      <span class="topic-chip">용접 설계</span>
-      <span class="topic-chip">축 설계</span>
-      <span class="topic-chip">베어링 선정</span>
-      <span class="topic-chip">키 · 핀 설계</span>
     </div>
   </div>
 
